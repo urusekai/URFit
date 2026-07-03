@@ -12,7 +12,7 @@
 | AI | Gemini API (`@google/genai`) |
 | Weather | OpenWeather API |
 
-Node.js 20+ (`.nvmrc` 참고)
+Node.js 24 LTS (`.nvmrc` 참고)
 
 ## 빠른 시작
 

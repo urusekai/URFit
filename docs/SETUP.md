@@ -2,7 +2,7 @@
 
 ## 1. 필수 도구
 
-- Node.js 20+ (`.nvmrc` 참고)
+- Node.js 24 LTS (`.nvmrc` 참고)
 - npm 10+
 - Git
 
