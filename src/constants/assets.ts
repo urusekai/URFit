@@ -10,4 +10,8 @@ export const IMAGES = {
   brand: {
     logo: "/images/brand/logo.svg",
   },
+  icons: {
+    delete: "/images/icons/delete.svg",
+    search: "/images/icons/search.svg",
+  },
 } as const;
