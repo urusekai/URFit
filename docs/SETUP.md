@@ -46,9 +46,6 @@ npm run dev
 ```
 
 - 헬스체크: `GET http://localhost:3000/api/health`
-- 날씨: `GET http://localhost:3000/api/weather`
-- AI: `POST http://localhost:3000/api/ai/generate` — body: `{ "prompt": "오늘 출근 코디 추천해줘" }`
-- 이미지: `POST http://localhost:3000/api/ai/generate-image` — body: `{ "prompt": "미니멀 출근 코디 가상 피팅 이미지" }`
 
 ## 7. Vercel Preview
 

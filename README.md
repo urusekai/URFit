@@ -36,9 +36,8 @@ npm run dev
 | Method | Path | 설명 |
 | --- | --- | --- |
 | GET | `/api/health` | 헬스체크 |
-| GET | `/api/weather` | 날씨 조회 (`?city=`, `?country=`) |
-| POST | `/api/ai/generate` | 코디 텍스트 추천 (`{ "prompt": "..." }`) |
-| POST | `/api/ai/generate-image` | 이미지 생성 (`{ "prompt": "..." }`) |
+
+기능별 API는 `src/app/api/<도메인>/route.ts`에 추가합니다. 응답 형식은 `src/types/api.ts`의 `ApiResponse`를 따릅니다.
 
 ## 프로젝트 구조
 
