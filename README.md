@@ -6,126 +6,94 @@
 
 | 영역 | 기술 |
 | --- | --- |
-| Frontend | Next.js (App Router), React, TypeScript, Tailwind CSS |
-| Backend | Next.js Route Handlers (Node.js) |
-| DB / Auth | Supabase |
-| AI | Gemini API — 텍스트: `gemini-3.5-flash`, 이미지: `gemini-3.1-flash-image` (Nano Banana 2) |
+| Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS 4 |
+| API | Next.js Route Handlers |
+| DB / Auth | Supabase (`@supabase/ssr`) |
+| AI | Gemini API (`@google/genai`) |
 | Weather | OpenWeather API |
-| Deploy | Vercel |
+
+Node.js 20+ (`.nvmrc` 참고)
 
 ## 빠른 시작
 
 ```bash
-# 1. 의존성 설치
 npm install
+cp .env.example .env.local   # Windows: copy .env.example .env.local
+```
 
-# 2. 환경 변수 복사
-cp .env.example .env.local
+`.env.local`에 값을 채운 뒤:
 
-# 3. 개발 서버 실행
+```bash
 npm run dev
 ```
 
-브라우저에서 [http://localhost:3000](http://localhost:3000) 접속
+[http://localhost:3000](http://localhost:3000)
+
+상세 설정은 [docs/SETUP.md](docs/SETUP.md) 참고.
+
+## API
+
+| Method | Path | 설명 |
+| --- | --- | --- |
+| GET | `/api/health` | 헬스체크 |
+| GET | `/api/weather` | 날씨 조회 (`?city=`, `?country=`) |
+| POST | `/api/ai/generate` | 코디 텍스트 추천 (`{ "prompt": "..." }`) |
+| POST | `/api/ai/generate-image` | 이미지 생성 (`{ "prompt": "..." }`) |
 
 ## 프로젝트 구조
 
 ```text
 src/
-├── app/                    # 페이지 + API Route
+├── app/
 │   ├── api/
-│   │   ├── health/         # 헬스체크
-│   │   ├── weather/        # OpenWeather 프록시
-│   │   └── ai/generate/    # Gemini API 코디 추천
-│   ├── wardrobe/           # 옷장 페이지
-│   └── outfit/             # 코디 추천 페이지
+│   │   ├── health/
+│   │   ├── weather/
+│   │   └── ai/
+│   │       ├── generate/
+│   │       └── generate-image/
+│   ├── wardrobe/
+│   └── outfit/
 ├── components/
-│   ├── ui/                 # 공통 UI (Button 등)
-│   ├── layout/             # Header, Footer
-│   └── features/           # 기능별 컴포넌트 (병렬 작업)
+│   ├── ui/
+│   ├── layout/
+│   └── features/
 │       ├── wardrobe/
 │       └── outfit/
 ├── lib/
-│   ├── supabase/           # 클라이언트/서버/미들웨어
-│   ├── ai/                 # Gemini API
-│   ├── weather/            # OpenWeather
+│   ├── supabase/
+│   ├── ai/
+│   ├── weather/
 │   └── utils/
-├── hooks/                  # 공통 React hooks
-├── types/                  # API/DB 타입
-└── constants/              # 앱 상수
+├── hooks/
+├── types/
+└── constants/
 ```
-
-## 3~4인 협업 가이드
-
-### 브랜치 전략
-
-- `main` — 프로덕션 (Vercel Production)
-- `develop` — 통합 브랜치 (Vercel Preview)
-- `feature/<이름>/<기능>` — 개인 작업 브랜치
-
-예시:
-
-```bash
-git checkout develop
-git pull
-git checkout -b feature/hong/wardrobe-upload
-```
-
-### 권장 담당 분리
-
-| 담당 | 주요 경로 |
-| --- | --- |
-| 팀원 A | `src/components/features/wardrobe/`, `src/app/wardrobe/`, Supabase Storage/테이블 |
-| 팀원 B | `src/components/features/outfit/`, `src/app/outfit/`, `src/lib/ai/` |
-| 팀원 C | `src/components/ui/`, `src/components/layout/`, `src/lib/weather/`, API 공통 |
-| 팀원 D | 인증, Supabase Auth, `src/middleware.ts` (팀에서 분담 조정) |
-
-겹치는 파일(`layout.tsx`, `types/`)은 PR 전에 `develop`을 먼저 merge한 뒤 작업하세요.
-
-### PR 규칙
-
-1. `develop` 대상으로 PR 생성
-2. `npm run lint`, `npm run typecheck` 통과
-3. 스크린샷 또는 API 응답 예시 첨부
-4. `.env` / API 키는 절대 커밋하지 않기
-
-자세한 내용은 [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md), [docs/SETUP.md](docs/SETUP.md) 참고.
 
 ## 환경 변수
 
-`.env.example`을 복사해 `.env.local`에 값을 채웁니다.
+`.env.example`과 동일한 항목을 `.env.local`에 설정합니다.
 
-| 변수 | 설명 |
+| 변수 | 필수 |
 | --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase Project URL (`https://xxx.supabase.co`, `/rest/v1` 없음) |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase Publishable key (`sb_publishable_...`) |
-| `SUPABASE_SECRET_KEY` | Supabase Secret key (`sb_secret_...`, 서버 전용) |
-| `GEMINI_API_KEY` | [Google AI Studio](https://aistudio.google.com/apikey) API 키 |
-| `GEMINI_TEXT_MODEL` | 텍스트 추천 모델 (기본: `gemini-3.5-flash`) |
-| `GEMINI_IMAGE_MODEL` | 가상 피팅 이미지 모델 (기본: `gemini-3.1-flash-image`) |
-| `OPENWEATHER_API_KEY` | OpenWeather API 키 |
-
-## Vercel 배포
-
-1. GitHub 저장소를 Vercel에 연결
-2. Production Branch: `main`, Preview Branch: `develop`
-3. Environment Variables에 `.env.example` 항목 등록
-4. Region: `icn1` (서울) — `vercel.json`에 설정됨
-
-## Supabase 타입 생성
-
-스키마 변경 후 팀 전체가 동일한 타입을 쓰도록 갱신합니다.
-
-```bash
-npx supabase gen types typescript --project-id <PROJECT_ID> > src/types/database.ts
-```
+| `NEXT_PUBLIC_APP_URL` | 선택 (기본 `http://localhost:3000`) |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase 사용 시 |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase 사용 시 |
+| `SUPABASE_SECRET_KEY` | 서버 admin 작업 시 |
+| `GEMINI_API_KEY` | AI API 사용 시 |
+| `GEMINI_TEXT_MODEL` | 선택 (기본 `gemini-3.5-flash`) |
+| `GEMINI_IMAGE_MODEL` | 선택 (기본 `gemini-3.1-flash-image`) |
+| `OPENWEATHER_API_KEY` | 날씨 API 사용 시 |
+| `OPENWEATHER_DEFAULT_CITY` | 선택 (기본 `Seoul`) |
+| `OPENWEATHER_DEFAULT_COUNTRY` | 선택 (기본 `KR`) |
 
 ## 스크립트
 
 ```bash
-npm run dev          # 개발 서버
-npm run build        # 프로덕션 빌드
-npm run lint         # ESLint
-npm run typecheck    # TypeScript 검사
-npm run format       # Prettier 포맷
+npm run dev           # 개발 서버
+npm run build         # 프로덕션 빌드
+npm run start         # 프로덕션 서버
+npm run lint          # ESLint
+npm run typecheck     # TypeScript
+npm run format        # Prettier
+npm run format:check  # Prettier 검사
 ```
