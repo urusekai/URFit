@@ -45,29 +45,23 @@ npm run dev
 ```text
 src/
 ├── app/
-│   ├── api/
-│   │   ├── health/
-│   │   ├── weather/
-│   │   └── ai/
-│   │       ├── generate/
-│   │       └── generate-image/
-│   ├── wardrobe/
-│   └── outfit/
+│   ├── (auth)/          # 스플래시 · 로그인 · 온보딩
+│   ├── (tabs)/          # 메인 앱 (헤더 + 하단 탭)
+│   └── api/
 ├── components/
 │   ├── ui/
 │   ├── layout/
-│   └── features/
-│       ├── wardrobe/
-│       └── outfit/
+│   └── features/        # 기능별 UI (팀원 작업 영역)
 ├── lib/
-│   ├── supabase/
-│   ├── ai/
-│   ├── weather/
-│   └── utils/
 ├── hooks/
 ├── types/
 └── constants/
+public/
+└── images/
 ```
+
+- 레이아웃·라우팅: [docs/LAYOUT.md](docs/LAYOUT.md)
+- UI 이미지: [docs/ASSETS.md](docs/ASSETS.md)
 
 ## 환경 변수
 

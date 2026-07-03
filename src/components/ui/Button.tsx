@@ -14,10 +14,9 @@ export function Button({
     <button
       className={cn(
         "inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-medium transition",
-        variant === "primary" &&
-          "bg-zinc-900 text-white hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200",
+        variant === "primary" && "bg-accent text-white hover:opacity-90",
         variant === "secondary" &&
-          "border border-zinc-300 bg-white text-zinc-900 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:hover:bg-zinc-800",
+          "border border-border bg-white text-foreground hover:bg-off-white",
         className,
       )}
       {...props}

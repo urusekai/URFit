@@ -1,26 +1,29 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
+/* URFit 컬러 시스템 — 라이트 테마 전용 (컬러 가이드 7색) */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-off-white: #f6f5f2;
+  --color-surface-muted: #e3e2de;
+  --color-border: #e3e2de;
+  --color-muted: #6b6b68;
+  --color-charcoal: #2e2e33;
+  --color-foreground: #1a1a1a;
+  --color-accent: #b0876a;
+
+  --font-sans: "Pretendard", system-ui, -apple-system, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: light;
 }
 
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  min-height: 100%;
+  background-color: #ffffff;
+  color: #1a1a1a;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
