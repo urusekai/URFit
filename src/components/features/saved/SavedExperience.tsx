@@ -38,90 +38,6 @@ const FILTERS: Array<{ id: SavedFilter; label: string }> = [
   { id: "date", label: "날짜별" },
 ];
 
-const MOCK_SAVED_LOOKS: SavedLookItem[] = [
-  {
-    id: "quiet-neutral-office",
-    title: "차분한 뉴트럴 오피스룩",
-    savedAt: "2026.07.01",
-    isFavorite: true,
-    palette: {
-      outer: "#24324e",
-      top: "#efe5d7",
-      bottom: "#dbccb8",
-      skin: "#f0cebd",
-      hair: "#19130f",
-      shoe: "#f8f8f8",
-    },
-  },
-  {
-    id: "weekend-outing",
-    title: "주말 나들이",
-    savedAt: "2026.06.25",
-    isFavorite: true,
-    palette: {
-      outer: "#cfe8ea",
-      top: "#fffaf5",
-      bottom: "#d8d4df",
-      skin: "#f1cfbf",
-      hair: "#2d1f19",
-      shoe: "#f8f8f8",
-    },
-  },
-  {
-    id: "hot-summer-day",
-    title: "무더운 날",
-    savedAt: "2026.06.20",
-    isFavorite: false,
-    palette: {
-      top: "#fff7ef",
-      bottom: "#1f2231",
-      skin: "#f1d3c2",
-      hair: "#1d1411",
-      shoe: "#fafafa",
-    },
-  },
-  {
-    id: "commute-look",
-    title: "출근룩",
-    savedAt: "2026.06.15",
-    isFavorite: false,
-    palette: {
-      outer: "#20294a",
-      top: "#d82231",
-      bottom: "#d82231",
-      skin: "#efcab7",
-      hair: "#1f1410",
-      shoe: "#fafafa",
-    },
-  },
-  {
-    id: "soft-daily",
-    title: "부드러운 데일리",
-    savedAt: "2026.06.12",
-    isFavorite: true,
-    palette: {
-      top: "#dbc1aa",
-      bottom: "#5f84b6",
-      skin: "#efccb9",
-      hair: "#5a3c33",
-      shoe: "#fbfbfb",
-    },
-  },
-  {
-    id: "red-knit-point",
-    title: "레드 니트 포인트",
-    savedAt: "2026.06.08",
-    isFavorite: false,
-    palette: {
-      top: "#d81e1e",
-      bottom: "#26272a",
-      skin: "#efcab8",
-      hair: "#201511",
-      shoe: "#fbfbfb",
-    },
-  },
-];
-
 function compareSavedAtDescending(left: SavedLookItem, right: SavedLookItem) {
   return right.savedAt.localeCompare(left.savedAt);
 }
@@ -301,7 +217,7 @@ type SavedExperienceProps = {
 
 export function SavedExperience({ initialLooks }: SavedExperienceProps) {
   const [selectedFilter, setSelectedFilter] = useState<SavedFilter>("all");
-  const [looks, setLooks] = useState(() => initialLooks ?? MOCK_SAVED_LOOKS);
+  const [looks, setLooks] = useState(() => initialLooks ?? []);
   const [deletingLookId, setDeletingLookId] = useState<string | null>(null);
 
   const filteredLooks = useMemo(

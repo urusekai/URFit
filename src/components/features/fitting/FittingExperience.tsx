@@ -25,19 +25,6 @@ export type FittingItem = {
 
 export type SelectedFittingItems = Record<FittingCategory, FittingItem | null>;
 
-const fallbackItems: FittingItem[] = [
-  { id: "white-shirt", category: "top", name: "와이셔츠", colorClass: "bg-[#f8f8f8]", shape: "shirt" },
-  { id: "denim-jacket", category: "top", name: "청자켓", colorClass: "bg-[#2f4d70]", shape: "jacket" },
-  { id: "green-hoodie", category: "top", name: "후드티", colorClass: "bg-[#37553d]", shape: "hoodie" },
-  { id: "gray-sweatshirt", category: "top", name: "맨투맨", colorClass: "bg-[#d9d9d9]", shape: "sweatshirt" },
-  { id: "cargo-pants", category: "bottom", name: "카고팬츠", colorClass: "bg-[#d8c7ad]", shape: "pants" },
-  { id: "denim-pants", category: "bottom", name: "청바지", colorClass: "bg-[#8ba0b9]", shape: "pants" },
-  { id: "slacks", category: "bottom", name: "슬랙스", colorClass: "bg-[#46464d]", shape: "pants" },
-  { id: "white-sneakers", category: "shoes", name: "스니커즈", colorClass: "bg-white", shape: "shoes" },
-  { id: "black-shoes", category: "shoes", name: "블랙슈즈", colorClass: "bg-[#222222]", shape: "shoes" },
-  { id: "ball-cap", category: "hat", name: "볼캡", colorClass: "bg-[#d7d2ca]", shape: "cap" },
-];
-
 type FittingExperienceProps = {
   items?: FittingItem[];
   personImageUrl?: string;
@@ -115,10 +102,10 @@ function mergeSelection(
 }
 
 export function FittingExperience({
-  items = fallbackItems,
+  items = [],
   personImageUrl,
 }: FittingExperienceProps) {
-  const availableItems = items.length > 0 ? items : fallbackItems;
+  const availableItems = items;
   const [activeCategory, setActiveCategory] = useState<FittingCategory>("top");
   const [selectedItems, setSelectedItems] = useState<SelectedFittingItems>(() =>
     getInitialSelection(availableItems),
