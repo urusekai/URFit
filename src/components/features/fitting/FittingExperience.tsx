@@ -179,8 +179,8 @@ export function FittingExperience({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          style: "casual",
-          weather: "Seoul daily weather, comfortable outfit",
+          style: selectedStyle,
+          weather: "서울, 온화한 날씨",
         }),
       });
       const payload = (await response.json()) as RecommendResponse;
@@ -322,6 +322,11 @@ export function FittingExperience({
           lookName={lookName}
           onChangeLookName={setLookName}
           onSheetOpenChange={setIsLookNameSheetOpen}
+        />
+        <FittingStyleChips
+          selected={selectedStyle}
+          disabled={isRecommending}
+          onSelect={setSelectedStyle}
         />
         <FittingStage
           activeCategory={activeCategory}
