@@ -17,7 +17,7 @@ function HeaderIcon({
     <button
       type="button"
       aria-label={label}
-      className="flex size-9 cursor-pointer items-center justify-center rounded-[10px] bg-white text-charcoal shadow-[0_4px_12px_rgba(26,26,26,0.05)]"
+      className="flex size-9 cursor-pointer items-center justify-center rounded-[10px] bg-white text-charcoal"
     >
       {children}
     </button>

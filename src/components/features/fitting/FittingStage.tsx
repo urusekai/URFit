@@ -10,18 +10,26 @@ const CLOSET_LABEL = "\ub0b4 \uc637\uc7a5";
 type FittingStageProps = {
   activeCategory: FittingCategory;
   generated: boolean;
+  loading?: boolean;
   personImageUrl?: string;
-  selectedItems: SelectedFittingItems;
+  fittingImage?: string | null;
+  closetItems: SelectedFittingItems;
+  recommendedItems: SelectedFittingItems;
   onSelectCategory: (category: FittingCategory) => void;
 };
 
 export function FittingStage({
   activeCategory,
   generated,
+  loading = false,
   personImageUrl,
-  selectedItems: _selectedItems,
+  fittingImage,
+  closetItems,
+  recommendedItems,
   onSelectCategory,
 }: FittingStageProps) {
+  // 생성 결과가 있으면 결과 이미지를, 없으면 기본 전신 사진을 표시
+  const displayImageUrl = fittingImage ?? personImageUrl;
   return (
     <section className="px-0 pb-3">
       <div className="px-0">
@@ -29,8 +37,9 @@ export function FittingStage({
           <FittingSidePanel
             activeCategory={activeCategory}
             title={AI_RECOMMEND_LABEL}
-            selectedItems={_selectedItems}
+            selectedItems={recommendedItems}
             align="left"
+            highlightActive={false}
             onSelectCategory={onSelectCategory}
           />
 
@@ -38,15 +47,18 @@ export function FittingStage({
             <div className="mx-auto w-full max-w-[236px]">
               <div
                 className={[
-                  "relative h-[410px] overflow-hidden rounded-[18px] border border-[#e4e4e4] bg-white transition",
+                  // 박스 배경은 페이지와 동일한 크림(#f6f5f2). 합성 결과도 같은 크림 배경으로
+                  // 생성되도록 프롬프트에서 강제하여 이질감을 없앤다.
+                  "relative h-[448px] overflow-hidden rounded-[18px] border border-[#ebe9e3] bg-[#f6f5f2] transition",
                   generated ? "ring-2 ring-accent/50" : "",
                 ].join(" ")}
               >
-                {personImageUrl ? (
-                  // Signed Supabase URLs are scoped to this page, so avoid global image config changes.
+                {displayImageUrl ? (
+                  // Signed Supabase URLs / base64 data URLs are scoped to this page,
+                  // so avoid global image config changes.
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={personImageUrl}
+                    src={displayImageUrl}
                     alt=""
                     className="absolute inset-x-0 bottom-0 z-10 mx-auto h-full w-full scale-[1.08] object-contain"
                     draggable={false}
@@ -61,6 +73,14 @@ export function FittingStage({
                     <div className="absolute right-[76px] top-[248px] h-[82px] w-[26px] rounded-full bg-[#ebe6f0]" />
                   </div>
                 )}
+                {loading ? (
+                  <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-white/70 backdrop-blur-sm">
+                    <span className="size-8 animate-spin rounded-full border-[3px] border-[#d8c4b2] border-t-[#b0876a]" />
+                    <span className="text-[13px] font-semibold text-[#8a6a52]">
+                      이미지 생성 중…
+                    </span>
+                  </div>
+                ) : null}
               </div>
             </div>
           </div>
@@ -68,7 +88,7 @@ export function FittingStage({
           <FittingSidePanel
             activeCategory={activeCategory}
             title={CLOSET_LABEL}
-            selectedItems={_selectedItems}
+            selectedItems={closetItems}
             align="right"
             onSelectCategory={onSelectCategory}
           />

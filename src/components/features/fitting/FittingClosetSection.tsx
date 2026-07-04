@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 
+import { useRef, type PointerEvent } from "react";
 import { Chip } from "@/components/ui/Chip";
 import type {
   FittingCategory,
@@ -7,9 +8,11 @@ import type {
   SelectedFittingItems,
 } from "@/components/features/fitting/FittingExperience";
 
-const CLOSET_TITLE = "\uc637\ubaa9\ub85d";
+const CLOSET_TITLE = "\uc637 \ubaa9\ub85d";
 const CLOSET_SWIPER_LABEL = "\uc637 \ubaa9\ub85d \uc2a4\uc640\uc774\ud37c";
-const NOTE_TEXT = "\uc774\ubbf8\uc9c0 \uc0dd\uc131 \ud6c4 \ubc84\ud2bc\uc774 \ub8e9\uc800\uc7a5\uc73c\ub85c \ubc14\ub00c\uc5b4\uc694.";
+const NOTE_PREFIX = "\uc774\ubbf8\uc9c0 \uc0dd\uc131 \ud6c4 \ubc84\ud2bc\uc774 ";
+const NOTE_HIGHLIGHT = "\ub8e9 \uc800\uc7a5";
+const NOTE_SUFFIX = "\uc73c\ub85c \ubc14\ub00c\uc5b4\uc694.";
 const SELECT_LABEL = "\uc120\ud0dd";
 
 const categoryItems = [
@@ -18,6 +21,15 @@ const categoryItems = [
   { category: "shoes", label: "\uc2e0\ubc1c" },
   { category: "hat", label: "\ubaa8\uc790" },
 ] as const satisfies Array<{ category: FittingCategory; label: string }>;
+
+type DragState = {
+  dragging: boolean;
+  dragged: boolean;
+  ignoreNextClick: boolean;
+  pointerId: number | null;
+  startX: number;
+  scrollLeft: number;
+};
 
 function ProductGlyph({
   shape,
@@ -96,6 +108,7 @@ function ProductGlyph({
 
 type FittingClosetSectionProps = {
   activeCategory: FittingCategory;
+  hideNote?: boolean;
   items: FittingItem[];
   selectedItems: SelectedFittingItems;
   onSelectCategory: (category: FittingCategory) => void;
@@ -104,16 +117,69 @@ type FittingClosetSectionProps = {
 
 export function FittingClosetSection({
   activeCategory,
+  hideNote = false,
   items,
   selectedItems,
   onSelectCategory,
   onSelectItem,
 }: FittingClosetSectionProps) {
   const visibleItems = items.filter((item) => item.category === activeCategory);
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const dragStateRef = useRef<DragState>({
+    dragging: false,
+    dragged: false,
+    ignoreNextClick: false,
+    pointerId: null,
+    startX: 0,
+    scrollLeft: 0,
+  });
+
+  const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === "mouse" && event.button !== 0) {
+      return;
+    }
+
+    const scroller = scrollerRef.current;
+    if (!scroller) {
+      return;
+    }
+
+    dragStateRef.current = {
+      dragging: true,
+      dragged: false,
+      ignoreNextClick: false,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      scrollLeft: scroller.scrollLeft,
+    };
+  };
+
+  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    const state = dragStateRef.current;
+    const scroller = scrollerRef.current;
+
+    if (!state.dragging || !scroller) {
+      return;
+    }
+
+    const deltaX = event.clientX - state.startX;
+    if (Math.abs(deltaX) > 4) {
+      state.dragged = true;
+    }
+
+    scroller.scrollLeft = state.scrollLeft - deltaX;
+  };
+
+  const handlePointerEnd = () => {
+    const state = dragStateRef.current;
+
+    state.dragging = false;
+    state.pointerId = null;
+  };
 
   return (
     <>
-      <section className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-1/2 z-30 h-[300px] w-full max-w-md -translate-x-1/2 rounded-t-[30px] bg-white px-5 pt-3">
+      <section className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-1/2 z-30 h-[308px] w-full max-w-md -translate-x-1/2 rounded-t-[30px] bg-white px-5 pt-3">
         <div className="mx-auto h-1.5 w-[72px] rounded-full bg-surface-muted" />
 
         <div className="mt-4 flex items-center justify-between gap-3">
@@ -140,8 +206,13 @@ export function FittingClosetSection({
         </div>
 
         <div
+          ref={scrollerRef}
           aria-label={CLOSET_SWIPER_LABEL}
-          className="mt-3 flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerEnd}
+          onPointerCancel={handlePointerEnd}
+          className="mt-3 flex cursor-grab gap-3 overflow-x-auto overscroll-x-contain pb-1 active:cursor-grabbing [scrollbar-width:none] [touch-action:pan-x] [&::-webkit-scrollbar]:hidden"
         >
           {visibleItems.map((item) => {
             const isSelected = selectedItems[item.category]?.id === item.id;
@@ -155,7 +226,33 @@ export function FittingClosetSection({
                   type="button"
                   aria-label={`${item.name} ${SELECT_LABEL}`}
                   aria-pressed={isSelected}
-                  onClick={() => onSelectItem(item)}
+                  onPointerUp={(event) => {
+                    const state = dragStateRef.current;
+
+                    if (state.pointerId !== event.pointerId || state.dragged) {
+                      return;
+                    }
+
+                    state.ignoreNextClick = true;
+                    onSelectItem(item);
+                  }}
+                  onClick={(event) => {
+                    const state = dragStateRef.current;
+
+                    if (state.ignoreNextClick) {
+                      state.ignoreNextClick = false;
+                      return;
+                    }
+
+                    if (state.dragged) {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      state.dragged = false;
+                      return;
+                    }
+
+                    onSelectItem(item);
+                  }}
                   className="block w-full cursor-pointer"
                 >
                   <div
@@ -195,9 +292,13 @@ export function FittingClosetSection({
         </div>
       </section>
 
-      <p className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+16px)] left-1/2 z-50 w-full max-w-md -translate-x-1/2 text-center text-[11px] font-semibold leading-[16px] text-muted">
-        {NOTE_TEXT}
-      </p>
+      {hideNote ? null : (
+        <p className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+24px)] left-1/2 z-50 w-full max-w-md -translate-x-1/2 text-center text-[11px] font-semibold leading-[16px] text-muted">
+          {NOTE_PREFIX}
+          <span className="text-accent">{NOTE_HIGHLIGHT}</span>
+          {NOTE_SUFFIX}
+        </p>
+      )}
     </>
   );
 }

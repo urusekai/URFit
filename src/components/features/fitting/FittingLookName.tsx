@@ -1,16 +1,31 @@
-'use client';
+"use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FittingLookNameSheet } from "@/components/features/fitting/FittingLookNameSheet";
 
 const DEFAULT_LOOK_NAME = "\uc8fc\ub9d0 \ub098\ub4e4\uc774";
 const EDIT_ARIA_LABEL = "\ub8e9 \uc774\ub984 \uc218\uc815";
 const LABEL_TEXT = "\ub8e9\uba85";
 
-export function FittingLookName() {
-  const [lookName, setLookName] = useState(DEFAULT_LOOK_NAME);
-  const [draftName, setDraftName] = useState(DEFAULT_LOOK_NAME);
+type FittingLookNameProps = {
+  lookName: string;
+  onChangeLookName: (name: string) => void;
+  onSheetOpenChange?: (isOpen: boolean) => void;
+};
+
+export { DEFAULT_LOOK_NAME };
+
+export function FittingLookName({
+  lookName,
+  onChangeLookName,
+  onSheetOpenChange,
+}: FittingLookNameProps) {
+  const [draftName, setDraftName] = useState(lookName);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+  useEffect(() => {
+    onSheetOpenChange?.(isSheetOpen);
+  }, [isSheetOpen, onSheetOpenChange]);
 
   return (
     <>
@@ -54,7 +69,7 @@ export function FittingLookName() {
         }}
         onSave={() => {
           const trimmedName = draftName.trim();
-          setLookName(trimmedName || DEFAULT_LOOK_NAME);
+          onChangeLookName(trimmedName || DEFAULT_LOOK_NAME);
           setIsSheetOpen(false);
         }}
       />

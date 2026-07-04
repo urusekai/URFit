@@ -67,7 +67,7 @@ export function FittingLookNameSheet({
         aria-modal="true"
         aria-labelledby="fitting-look-name-sheet-title"
         className={[
-          "absolute bottom-[calc(5rem+env(safe-area-inset-bottom))] left-1/2 w-full max-w-md -translate-x-1/2 rounded-t-[32px] bg-white px-5 pb-8 pt-4 shadow-[0_-12px_40px_rgba(26,26,26,0.18)] transition-transform duration-300",
+          "absolute bottom-[calc(5rem+env(safe-area-inset-bottom))] left-1/2 w-full max-w-md -translate-x-1/2 rounded-t-[32px] bg-white px-5 pb-8 pt-4 transition-transform duration-300",
           isOpen ? "translate-y-0" : "translate-y-full",
         ].join(" ")}
       >

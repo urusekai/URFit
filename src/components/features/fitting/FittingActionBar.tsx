@@ -1,29 +1,45 @@
 const AI_CODY_LABEL = "AI \ucf54\ub514 \ucd94\ucc9c";
+const AI_RECOMMENDING_LABEL = "\ucd94\ucc9c \uc911\u2026";
 const GENERATE_IMAGE_LABEL = "\uc774\ubbf8\uc9c0 \uc0dd\uc131";
-const SAVE_LOOK_LABEL = "\ub8e9\uc800\uc7a5";
+const GENERATING_LABEL = "\uc0dd\uc131 \uc911\u2026";
+const SAVE_LOOK_LABEL = "\ub8e9 \uc800\uc7a5";
+const SAVING_LABEL = "\uc800\uc7a5 \uc911\u2026";
 
 type FittingActionBarProps = {
   generated: boolean;
+  loading?: boolean;
+  recommending?: boolean;
+  saving?: boolean;
   onGenerateOrSave: () => void;
   onRecommend: () => void;
 };
 
 export function FittingActionBar({
   generated,
+  loading = false,
+  recommending = false,
+  saving = false,
   onGenerateOrSave,
   onRecommend,
 }: FittingActionBarProps) {
-  const primaryLabel = generated ? SAVE_LOOK_LABEL : GENERATE_IMAGE_LABEL;
+  const primaryLabel = loading
+    ? GENERATING_LABEL
+    : saving
+      ? SAVING_LABEL
+      : generated
+        ? SAVE_LOOK_LABEL
+        : GENERATE_IMAGE_LABEL;
 
   return (
     <div
-      className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+48px)] left-1/2 z-40 flex w-full max-w-md -translate-x-1/2 gap-3 px-5"
+      className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+56px)] left-1/2 z-40 flex w-full max-w-md -translate-x-1/2 gap-3 px-5"
       aria-label="fitting actions"
     >
       <button
         type="button"
         onClick={onRecommend}
-        className="flex h-[42px] flex-1 cursor-pointer items-center justify-center gap-2 rounded-[10px] border-2 border-[#eff0ec] bg-white text-[14px] font-semibold text-foreground shadow-[0_8px_18px_rgba(26,26,26,0.08)]"
+        disabled={loading || recommending || saving}
+        className="flex h-[42px] flex-1 cursor-pointer items-center justify-center gap-2 rounded-[10px] border-2 border-[#eff0ec] bg-white text-[14px] font-semibold text-foreground disabled:cursor-not-allowed disabled:opacity-60"
       >
         <svg
           aria-hidden="true"
@@ -33,12 +49,13 @@ export function FittingActionBar({
         >
           <path d="M12 2.5 14.1 9.4 21 11.5 14.1 13.6 12 20.5 9.9 13.6 3 11.5 9.9 9.4 12 2.5Z" />
         </svg>
-        {AI_CODY_LABEL}
+        {recommending ? AI_RECOMMENDING_LABEL : AI_CODY_LABEL}
       </button>
       <button
         type="button"
         onClick={onGenerateOrSave}
-        className="flex h-[42px] flex-1 cursor-pointer items-center justify-center gap-2 rounded-[10px] bg-accent text-[14px] font-semibold text-white shadow-[0_8px_18px_rgba(176,135,106,0.25)]"
+        disabled={loading || saving}
+        className="flex h-[42px] flex-1 cursor-pointer items-center justify-center gap-2 rounded-[10px] bg-accent text-[14px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-70"
       >
         <svg
           aria-hidden="true"
