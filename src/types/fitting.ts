@@ -2,8 +2,8 @@
 
 /**
  * 옷 카테고리.
- * - UI 옷장 탭은 top/bottom/shoes/hat 4개지만, 추천 로직의 레이어링을 위해
- *   아우터(outer)를 별도 카테고리로 구분한다. UI에서는 outer를 top으로 접어서 표시.
+ * - 옷장 UI: top / outer / bottom / shoes / hat 5개
+ * - 추천·피팅 로직: outer를 별도 레이어로 구분
  */
 export type ClothCategory = "top" | "bottom" | "shoes" | "hat" | "outer";
 

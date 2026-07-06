@@ -28,6 +28,11 @@ const DEFAULT_MEASUREMENTS: Record<ClosetCategory, ClosetMeasurement[]> = {
     { label: "가슴", value: "-" },
     { label: "총장", value: "-" },
   ],
+  outer: [
+    { label: "어깨", value: "-" },
+    { label: "가슴", value: "-" },
+    { label: "총장", value: "-" },
+  ],
   bottom: [
     { label: "허리", value: "-" },
     { label: "허벅지", value: "-" },

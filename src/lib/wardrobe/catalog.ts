@@ -1,9 +1,10 @@
 import type { Cloth, ClothCategory, Season } from "@/types/fitting";
 
-export type ClosetCategory = "top" | "bottom" | "shoes" | "hat";
+export type ClosetCategory = "top" | "outer" | "bottom" | "shoes" | "hat";
 
 export const CLOSET_CATEGORIES: { value: ClosetCategory; label: string }[] = [
   { value: "top", label: "상의" },
+  { value: "outer", label: "아우터" },
   { value: "bottom", label: "하의" },
   { value: "shoes", label: "신발" },
   { value: "hat", label: "모자" },
@@ -11,6 +12,7 @@ export const CLOSET_CATEGORIES: { value: ClosetCategory; label: string }[] = [
 
 export const CLOSET_CATEGORY_LABEL: Record<ClosetCategory, string> = {
   top: "상의",
+  outer: "아우터",
   bottom: "하의",
   shoes: "신발",
   hat: "모자",
@@ -41,7 +43,7 @@ export type ClosetItem = {
 
 const CATEGORY_TO_CLOSET: Record<ClothCategory, ClosetCategory> = {
   top: "top",
-  outer: "top",
+  outer: "outer",
   bottom: "bottom",
   shoes: "shoes",
   hat: "hat",
@@ -93,6 +95,11 @@ const FIT_LABEL: Record<Cloth["formality"], string> = {
 
 const DEFAULT_MEASUREMENTS: Record<ClosetCategory, ClosetMeasurement[]> = {
   top: [
+    { label: "어깨", value: "-" },
+    { label: "가슴", value: "-" },
+    { label: "총장", value: "-" },
+  ],
+  outer: [
     { label: "어깨", value: "-" },
     { label: "가슴", value: "-" },
     { label: "총장", value: "-" },

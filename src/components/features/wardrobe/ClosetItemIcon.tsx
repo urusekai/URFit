@@ -17,6 +17,20 @@ export function ClosetItemIcon({ category, color }: ClosetItemIconProps) {
           />
         </svg>
       );
+    case "outer":
+      return (
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <path
+            d="M8 4.5 12 6.5l4-2 3.5 2.2-1.8 2.8-1.2-.8v10.8H7.5V8.7l-1.2.8L4.5 6.7 8 4.5Z"
+            fill={color}
+          />
+          <path
+            d="M7.5 8.7h9v1.2c-1.2.6-2.5.9-3.8.9s-2.6-.3-3.7-.9V8.7Z"
+            fill={color}
+            opacity="0.75"
+          />
+        </svg>
+      );
     case "bottom":
       return (
         <svg width="56" height="56" viewBox="0 0 24 24" fill="none" aria-hidden>
