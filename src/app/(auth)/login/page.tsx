@@ -19,9 +19,7 @@ export default function LoginPage() {
           가상으로 입어보세요
         </p>
       </div>
-
       <SocialLoginButtons />
-
       <p className="text-center text-xs leading-relaxed text-muted">
         계속 진행하면 이용약관 및
         <br />
