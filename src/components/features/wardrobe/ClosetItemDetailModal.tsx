@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { CLOSET_CATEGORY_LABEL, type ClosetItem } from "@/lib/mock/wardrobe";
+import { CLOSET_CATEGORY_LABEL, type ClosetItem } from "@/lib/wardrobe/catalog";
 import { ClosetItemCareView } from "./ClosetItemCareView";
 import { ClosetItemIcon } from "./ClosetItemIcon";
 
@@ -83,9 +83,19 @@ export function ClosetItemDetailModal({ item, onClose }: ClosetItemDetailModalPr
                 className="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-2xl"
                 style={{ backgroundColor: item.swatch }}
               >
-                <span className="scale-[1.8]">
-                  <ClosetItemIcon category={item.category} color={item.accent} />
-                </span>
+                {item.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={item.imageUrl}
+                    alt=""
+                    className="h-full w-full object-contain p-6"
+                    aria-hidden
+                  />
+                ) : (
+                  <span className="scale-[1.8]">
+                    <ClosetItemIcon category={item.category} color={item.accent} />
+                  </span>
+                )}
               </div>
 
               <div className="flex flex-col gap-3">

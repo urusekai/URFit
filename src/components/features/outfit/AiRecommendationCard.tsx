@@ -1,63 +1,97 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ROUTES } from "@/constants/app";
-import type { OutfitRecommendation } from "@/lib/mock/ai-recommendation";
+import type { OutfitRecommendation } from "@/lib/outfit/recommendation";
 
 export function AiRecommendationCard({
   recommendation,
 }: {
   recommendation: OutfitRecommendation;
 }) {
+  const visualSrc = recommendation.recommendationImageUrl ?? recommendation.imageUrl;
+  const visualAlt = recommendation.recommendationImageAlt ?? recommendation.imageAlt ?? "";
+
   return (
-    <section className="relative flex aspect-[4/3] flex-col justify-between overflow-hidden rounded-2xl bg-surface-muted">
-      <div className="flex items-center gap-1.5 p-4">
-        <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-charcoal">
-          {recommendation.styleTag}
-        </span>
-        <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-accent">
-          {recommendation.matchPercent}% 어울림
-        </span>
+    <div className="flex flex-col items-center">
+      <div className="relative h-[258px] w-full overflow-hidden">
+        <div className="absolute left-1/2 top-8 h-[214px] w-[218px] -translate-x-[62%] rotate-[-9deg] rounded-[18px] bg-[#efede9]" />
+        <div className="absolute left-1/2 top-8 h-[214px] w-[218px] -translate-x-[38%] rotate-[8deg] rounded-[18px] bg-[#efede9]" />
+
+        <div className="absolute left-1/2 top-0 flex h-[244px] w-[220px] -translate-x-1/2 items-center justify-center rounded-[18px] bg-[#f7f6f3] shadow-sm">
+          <div className="relative h-[178px] w-[144px] bg-white">
+            {visualSrc ? (
+              <Image
+                src={visualSrc}
+                alt={visualAlt}
+                fill
+                sizes="144px"
+                className="object-contain p-1"
+                priority
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-accent">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path
+                    d="M9 3.5 12 5.5l3-2 4.5 2.5-2 3.2-2-1v11.3H8.5V8.2l-2 1-2-3.2L9 3.5Z"
+                    fill="currentColor"
+                  />
+                </svg>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
-      <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-40">
-        <svg width="120" height="120" viewBox="0 0 24 24" fill="none" aria-hidden>
-          <circle cx="12" cy="6.5" r="2.6" stroke="#b0876a" strokeWidth="1.4" />
+      <div className="mt-0 flex items-center justify-center gap-1.5">
+        <span className="h-1.5 w-5 rounded-full bg-accent" />
+        <span className="size-1.5 rounded-full bg-[#dedbd5]" />
+        <span className="size-1.5 rounded-full bg-[#dedbd5]" />
+      </div>
+
+      <div className="mt-4 text-center">
+        <h3 className="text-base font-extrabold text-foreground">
+          {recommendation.title}
+        </h3>
+        <p className="mt-2 text-sm leading-5 text-muted">
+          {recommendation.description}
+        </p>
+      </div>
+
+      <Link
+        href={ROUTES.fitting}
+        className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-[10px] bg-accent px-4 text-sm font-extrabold text-white transition hover:opacity-90"
+      >
+        <svg width="25" height="22" viewBox="0 0 25 22" fill="none" aria-hidden>
           <path
-            d="M8 21v-6.2L6 12l1.6-3.5c.5-1.1 1.6-1.8 2.8-1.8h3.2c1.2 0 2.3.7 2.8 1.8L18 12l-2 2.8V21"
-            stroke="#b0876a"
-            strokeWidth="1.4"
-            strokeLinejoin="round"
+            d="M12.5 3.2c0-1.3 1-2.2 2.3-2.2 1.1 0 2 .8 2.2 1.8"
+            stroke="currentColor"
+            strokeWidth="1.6"
             strokeLinecap="round"
           />
           <path
-            d="M9.5 21v-5.5M14.5 21v-5.5"
-            stroke="#b0876a"
-            strokeWidth="1.4"
+            d="M12.5 6.1 4.2 19.4h16.6L12.5 6.1Z"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M12.5 6.1V3.2"
+            stroke="currentColor"
+            strokeWidth="1.6"
             strokeLinecap="round"
           />
         </svg>
-      </div>
-
-      <div className="relative flex flex-col gap-2 bg-gradient-to-t from-charcoal/85 via-charcoal/40 to-transparent p-4 pt-8">
-        <div>
-          <h3 className="text-base font-bold text-white">{recommendation.title}</h3>
-          <p className="mt-1 text-sm leading-6 text-white/85">{recommendation.description}</p>
-        </div>
-        <Link
-          href={ROUTES.fitting}
-          className="inline-flex w-fit items-center gap-1 rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-foreground transition hover:opacity-90"
-        >
-          {recommendation.ctaLabel}
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-            <path
-              d="m9 6 6 6-6 6"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </Link>
-      </div>
-    </section>
+        <span>가상피팅으로 입어보기</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <path
+            d="m9 6 6 6-6 6"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </Link>
+    </div>
   );
 }

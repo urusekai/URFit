@@ -9,8 +9,6 @@ import {
   FittingLookName,
 } from "@/components/features/fitting/FittingLookName";
 import { FittingStage } from "@/components/features/fitting/FittingStage";
-import { FittingStyleChips } from "@/components/features/fitting/FittingStyleChips";
-import type { StyleTag } from "@/types/fitting";
 
 export type FittingCategory = "top" | "bottom" | "shoes" | "hat";
 
@@ -120,7 +118,6 @@ export function FittingExperience({
     mimeType: string;
   } | null>(null);
   const [lookName, setLookName] = useState(DEFAULT_LOOK_NAME);
-  const [selectedStyle, setSelectedStyle] = useState<StyleTag>("캐주얼");
   const [isLookNameSheetOpen, setIsLookNameSheetOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isRecommending, setIsRecommending] = useState(false);
@@ -166,7 +163,7 @@ export function FittingExperience({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          style: selectedStyle,
+          style: "캐주얼",
           weather: "서울, 온화한 날씨",
         }),
       });
@@ -309,11 +306,6 @@ export function FittingExperience({
           lookName={lookName}
           onChangeLookName={setLookName}
           onSheetOpenChange={setIsLookNameSheetOpen}
-        />
-        <FittingStyleChips
-          selected={selectedStyle}
-          disabled={isRecommending}
-          onSelect={setSelectedStyle}
         />
         <FittingStage
           activeCategory={activeCategory}

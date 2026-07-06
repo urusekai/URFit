@@ -1,4 +1,4 @@
-import type { CareIconType } from "@/lib/mock/care-info";
+import type { CareIconType } from "@/lib/wardrobe/care";
 
 type CareIconProps = {
   type: CareIconType;

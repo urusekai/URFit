@@ -10,6 +10,10 @@ export const IMAGES = {
   brand: {
     logo: "/images/brand/logo.svg",
   },
+  illustrations: {
+    aiOutfitRecommendation: "/images/illustrations/ai-outfit-recommendation.png",
+    virtualFittingResult: "/images/illustrations/virtual-fitting-result.png",
+  },
   icons: {
     delete: "/images/icons/delete.svg",
     search: "/images/icons/search.svg",

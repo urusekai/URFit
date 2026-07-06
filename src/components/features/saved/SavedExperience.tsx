@@ -32,6 +32,16 @@ type DeleteLookResponse =
     }
   | { ok: false; error: string };
 
+type FavoriteLookResponse =
+  | {
+      ok: true;
+      data: {
+        id: string;
+        isFavorite: boolean;
+      };
+    }
+  | { ok: false; error: string };
+
 const FILTERS: Array<{ id: SavedFilter; label: string }> = [
   { id: "all", label: "전체" },
   { id: "favorite", label: "즐겨찾기" },
@@ -52,6 +62,37 @@ function getFilteredLooks(looks: SavedLookItem[], filter: SavedFilter) {
     default:
       return looks;
   }
+}
+
+type LookMonthGroup = {
+  key: string;
+  label: string;
+  items: SavedLookItem[];
+};
+
+/** "날짜별" 필터용: 저장월(YYYY.MM) 기준으로 묶어 최신 월부터 반환 */
+function groupLooksByMonth(looks: SavedLookItem[]): LookMonthGroup[] {
+  const groups: LookMonthGroup[] = [];
+  const indexByKey = new Map<string, number>();
+
+  for (const look of [...looks].sort(compareSavedAtDescending)) {
+    const [year, month] = look.savedAt.split(".");
+    const key = `${year}.${month}`;
+    const existing = indexByKey.get(key);
+
+    if (existing === undefined) {
+      indexByKey.set(key, groups.length);
+      groups.push({
+        key,
+        label: `${year}년 ${Number(month)}월`,
+        items: [look],
+      });
+    } else {
+      groups[existing].items.push(look);
+    }
+  }
+
+  return groups;
 }
 
 function HangerIcon() {
@@ -167,17 +208,51 @@ function SavedLookPreview({ item }: { item: SavedLookItem }) {
   );
 }
 
+function StarIcon({ filled }: { filled: boolean }) {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill={filled ? "currentColor" : "none"}
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 17.9 6.8 20.6l1-5.8L3.5 9.7l5.9-.9L12 3.5Z" />
+    </svg>
+  );
+}
+
 function SavedLookCard({
   deleting,
+  favoriting,
   item,
   onDelete,
+  onToggleFavorite,
 }: {
   deleting: boolean;
+  favoriting: boolean;
   item: SavedLookItem;
   onDelete: (id: string) => void;
+  onToggleFavorite: (id: string, isFavorite: boolean) => void;
 }) {
   return (
-    <article className="overflow-hidden rounded-[26px] border-4 border-[#EFF0EC] bg-[#F9F9F9]">
+    <article className="relative overflow-hidden rounded-[26px] border-4 border-[#EFF0EC] bg-[#F9F9F9]">
+      <button
+        type="button"
+        aria-label={item.isFavorite ? "즐겨찾기 해제" : "즐겨찾기 추가"}
+        aria-pressed={item.isFavorite}
+        disabled={favoriting}
+        onClick={() => onToggleFavorite(item.id, !item.isFavorite)}
+        className={cn(
+          "absolute right-3 top-3 z-10 inline-flex size-8 items-center justify-center rounded-full bg-white/90 shadow-[0_2px_8px_rgba(26,26,26,0.12)] transition disabled:cursor-wait disabled:opacity-60",
+          item.isFavorite ? "text-accent" : "text-[#9a968f] hover:text-accent",
+        )}
+      >
+        <StarIcon filled={item.isFavorite} />
+      </button>
       <SavedLookPreview item={item} />
       <div className="flex min-h-[74px] items-start gap-2 px-4 pb-3.5 pt-3">
         <div className="min-w-0 flex-1">
@@ -219,6 +294,7 @@ export function SavedExperience({ initialLooks }: SavedExperienceProps) {
   const [selectedFilter, setSelectedFilter] = useState<SavedFilter>("all");
   const [looks, setLooks] = useState(() => initialLooks ?? []);
   const [deletingLookId, setDeletingLookId] = useState<string | null>(null);
+  const [favoritingLookId, setFavoritingLookId] = useState<string | null>(null);
 
   const filteredLooks = useMemo(
     () => getFilteredLooks(looks, selectedFilter),
@@ -245,6 +321,52 @@ export function SavedExperience({ initialLooks }: SavedExperienceProps) {
       setDeletingLookId(null);
     }
   };
+
+  const handleToggleFavorite = async (id: string, isFavorite: boolean) => {
+    setFavoritingLookId(id);
+    // 낙관적 업데이트 (실패 시 되돌림)
+    setLooks((currentLooks) =>
+      currentLooks.map((look) =>
+        look.id === id ? { ...look, isFavorite } : look,
+      ),
+    );
+
+    try {
+      const response = await fetch("/api/looks", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, isFavorite }),
+      });
+      const payload = (await response.json()) as FavoriteLookResponse;
+
+      if (!payload.ok) {
+        setLooks((currentLooks) =>
+          currentLooks.map((look) =>
+            look.id === id ? { ...look, isFavorite: !isFavorite } : look,
+          ),
+        );
+      }
+    } catch {
+      setLooks((currentLooks) =>
+        currentLooks.map((look) =>
+          look.id === id ? { ...look, isFavorite: !isFavorite } : look,
+        ),
+      );
+    } finally {
+      setFavoritingLookId(null);
+    }
+  };
+
+  const renderLookCard = (item: SavedLookItem) => (
+    <SavedLookCard
+      key={item.id}
+      deleting={deletingLookId === item.id}
+      favoriting={favoritingLookId === item.id}
+      item={item}
+      onDelete={handleDeleteLook}
+      onToggleFavorite={handleToggleFavorite}
+    />
+  );
 
   return (
     <section className="-mx-1 space-y-5 pb-10">
@@ -276,19 +398,25 @@ export function SavedExperience({ initialLooks }: SavedExperienceProps) {
           </div>
         </div>
 
-        {filteredLooks.length > 0 ? (
-          <div className="grid grid-cols-2 gap-x-4 gap-y-7">
-            {filteredLooks.map((item) => (
-              <SavedLookCard
-                key={item.id}
-                deleting={deletingLookId === item.id}
-                item={item}
-                onDelete={handleDeleteLook}
-              />
+        {filteredLooks.length === 0 ? (
+          <SavedEmptyState />
+        ) : selectedFilter === "date" ? (
+          <div className="space-y-6">
+            {groupLooksByMonth(filteredLooks).map((group) => (
+              <div key={group.key} className="space-y-3">
+                <h2 className="px-1 text-[14px] font-semibold text-muted">
+                  {group.label}
+                </h2>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-7">
+                  {group.items.map(renderLookCard)}
+                </div>
+              </div>
             ))}
           </div>
         ) : (
-          <SavedEmptyState />
+          <div className="grid grid-cols-2 gap-x-4 gap-y-7">
+            {filteredLooks.map(renderLookCard)}
+          </div>
         )}
       </div>
     </section>

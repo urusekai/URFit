@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { IMAGES } from "@/constants/assets";
-import { CLOSET_CATEGORY_LABEL, type ClosetItem } from "@/lib/mock/wardrobe";
+import { CLOSET_CATEGORY_LABEL, type ClosetItem } from "@/lib/wardrobe/catalog";
 import { ClosetItemIcon } from "./ClosetItemIcon";
 
 type ClosetItemCardProps = {
@@ -16,12 +16,25 @@ export function ClosetItemCard({ item, onDelete, onSelect }: ClosetItemCardProps
         type="button"
         onClick={() => onSelect(item)}
         aria-label={`${item.name} 상세 보기`}
-        className="flex aspect-square items-center justify-center transition hover:brightness-95"
+        className="flex aspect-square items-center justify-center overflow-hidden transition hover:brightness-95"
+        style={{ backgroundColor: "#ffffff" }}
+      >
+        {item.imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={item.imageUrl}
+            alt=""
+            className="h-full w-full object-contain p-4"
+            aria-hidden
+          />
+        ) : (
+          <ClosetItemIcon category={item.category} color={item.accent} />
+        )}
+      </button>
+      <div
+        className="flex items-start justify-between gap-2 px-3 py-2.5"
         style={{ backgroundColor: item.swatch }}
       >
-        <ClosetItemIcon category={item.category} color={item.accent} />
-      </button>
-      <div className="flex items-start justify-between gap-2 bg-off-white px-3 py-2.5">
         <button
           type="button"
           onClick={() => onSelect(item)}

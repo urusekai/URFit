@@ -1,12 +1,11 @@
 import Link from "next/link";
 import { ClosetItemIcon } from "@/components/features/wardrobe/ClosetItemIcon";
 import { ROUTES } from "@/constants/app";
-import { MOCK_WARDROBE_ITEMS } from "@/lib/mock/wardrobe";
+import type { ClosetItem } from "@/lib/wardrobe/catalog";
 
 const MIN_ITEMS_REQUIRED = 3;
 
-export function WardrobeTeaser() {
-  const items = MOCK_WARDROBE_ITEMS;
+export function WardrobeTeaser({ items }: { items: ClosetItem[] }) {
   const isEmpty = items.length < MIN_ITEMS_REQUIRED;
 
   return (
@@ -45,12 +44,22 @@ export function WardrobeTeaser() {
             {items.slice(0, 4).map((item) => (
               <span
                 key={item.id}
-                className="flex size-10 items-center justify-center overflow-hidden rounded-full border-2 border-white"
-                style={{ backgroundColor: item.swatch }}
+                className="flex size-10 items-center justify-center overflow-hidden rounded-full border-2 bg-white"
+                style={{ borderColor: item.swatch }}
               >
-                <span className="scale-50">
-                  <ClosetItemIcon category={item.category} color={item.accent} />
-                </span>
+                {item.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={item.imageUrl}
+                    alt=""
+                    className="h-full w-full object-contain p-1"
+                    aria-hidden
+                  />
+                ) : (
+                  <span className="scale-50">
+                    <ClosetItemIcon category={item.category} color={item.accent} />
+                  </span>
+                )}
               </span>
             ))}
           </div>

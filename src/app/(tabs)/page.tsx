@@ -4,7 +4,9 @@ import { WeatherPill } from "@/components/features/outfit/WeatherPill";
 import { WeatherTipBanner } from "@/components/features/outfit/WeatherTipBanner";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { APP_NAME } from "@/constants/app";
-import { getGreeting, getMockOutfitRecommendation, getWeatherTip } from "@/lib/mock/ai-recommendation";
+import { getCurrentUserId, getWardrobe } from "@/lib/fitting";
+import { getFeaturedAiRecommendation, getGreeting, getWeatherTip } from "@/lib/outfit/recommendation";
+import { toClosetItems } from "@/lib/wardrobe/catalog";
 import { getCurrentWeather } from "@/lib/weather/openweather";
 import type { WeatherSummary } from "@/types/api";
 
@@ -32,8 +34,13 @@ async function getWeatherSafely(): Promise<WeatherSummary> {
 const DEMO_USER_NAME = "지우";
 
 export default async function MainPage() {
-  const weather = await getWeatherSafely();
-  const recommendation = getMockOutfitRecommendation(weather);
+  const userId = await getCurrentUserId();
+  const [weather, clothes] = await Promise.all([
+    getWeatherSafely(),
+    getWardrobe(userId),
+  ]);
+  const closetItems = toClosetItems(clothes);
+  const recommendation = getFeaturedAiRecommendation();
   const tip = getWeatherTip(weather);
   const greeting = getGreeting();
 
@@ -49,6 +56,8 @@ export default async function MainPage() {
           <h2 className="mt-1 text-xl font-bold text-foreground">오늘 뭐 입지?</h2>
         </div>
 
+        <WeatherTipBanner tip={tip} />
+
         <section className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-bold text-foreground">오늘의 AI 추천</h2>
@@ -59,9 +68,7 @@ export default async function MainPage() {
           <AiRecommendationCard recommendation={recommendation} />
         </section>
 
-        <WeatherTipBanner tip={tip} />
-
-        <WardrobeTeaser />
+        <WardrobeTeaser items={closetItems} />
       </div>
     </>
   );

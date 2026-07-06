@@ -9,7 +9,7 @@ import {
   type ClosetCategory,
   type ClosetItem,
   type ClosetMeasurement,
-} from "@/lib/mock/wardrobe";
+} from "@/lib/wardrobe/catalog";
 
 const SWATCH_PRESETS = [
   { swatch: "#f2f1ed", accent: "#6b6b68" },

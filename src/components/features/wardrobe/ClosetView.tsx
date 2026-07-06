@@ -8,10 +8,9 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { IMAGES } from "@/constants/assets";
 import {
   CLOSET_CATEGORIES,
-  MOCK_WARDROBE_ITEMS,
   type ClosetCategory,
   type ClosetItem,
-} from "@/lib/mock/wardrobe";
+} from "@/lib/wardrobe/catalog";
 import { AddItemSheet } from "./AddItemSheet";
 import { ClosetItemCard } from "./ClosetItemCard";
 import { ClosetItemDetailModal } from "./ClosetItemDetailModal";
@@ -25,8 +24,12 @@ const SORT_LABEL: Record<SortOption, string> = {
   name: "이름순",
 };
 
-export function ClosetView() {
-  const [items, setItems] = useState<ClosetItem[]>(MOCK_WARDROBE_ITEMS);
+type ClosetViewProps = {
+  initialItems: ClosetItem[];
+};
+
+export function ClosetView({ initialItems }: ClosetViewProps) {
+  const [items, setItems] = useState<ClosetItem[]>(initialItems);
   const [category, setCategory] = useState<CategoryFilter>("top");
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortOption>("recent");

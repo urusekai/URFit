@@ -1,5 +1,5 @@
-import { CLOSET_CATEGORY_LABEL, type ClosetItem } from "@/lib/mock/wardrobe";
-import { getCareInfo } from "@/lib/mock/care-info";
+import { getCareInfo } from "@/lib/wardrobe/care";
+import { CLOSET_CATEGORY_LABEL, type ClosetItem } from "@/lib/wardrobe/catalog";
 import { CareIcon } from "./CareIcon";
 import { ClosetItemIcon } from "./ClosetItemIcon";
 
@@ -15,9 +15,19 @@ export function ClosetItemCareView({ item }: { item: ClosetItem }) {
           className="flex aspect-square w-1/3 shrink-0 items-center justify-center overflow-hidden rounded-xl"
           style={{ backgroundColor: item.swatch }}
         >
-          <span className="scale-90">
-            <ClosetItemIcon category={item.category} color={item.accent} />
-          </span>
+          {item.imageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={item.imageUrl}
+              alt=""
+              className="h-full w-full object-contain p-3"
+              aria-hidden
+            />
+          ) : (
+            <span className="scale-90">
+              <ClosetItemIcon category={item.category} color={item.accent} />
+            </span>
+          )}
         </div>
         <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 py-1">
           <p className="font-bold text-foreground">{item.name}</p>

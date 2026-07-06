@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getCurrentUserId } from "@/lib/fitting";
-import { deleteSavedLook, getSavedLooks, saveLook } from "@/lib/fitting/savedLooks";
+import {
+  deleteSavedLook,
+  getSavedLooks,
+  saveLook,
+  setLookFavorite,
+} from "@/lib/fitting/savedLooks";
 import type { ApiResponse } from "@/types/api";
 import type { SavedLookRecord } from "@/lib/fitting/savedLooks";
 
@@ -16,6 +22,11 @@ const bodySchema = z.object({
 
 const deleteBodySchema = z.object({
   id: z.string().min(1),
+});
+
+const patchBodySchema = z.object({
+  id: z.string().min(1),
+  isFavorite: z.boolean(),
 });
 
 function jsonResponse<T>(body: ApiResponse<T>, status = 200) {
@@ -48,13 +59,41 @@ export async function POST(request: Request) {
   });
 
   if (!look) {
+    return jsonResponse({ ok: false, error: "룩을 저장하지 못했습니다." }, 500);
+  }
+
+  revalidatePath("/saved");
+  return jsonResponse<{ look: SavedLookRecord }>({ ok: true, data: { look } });
+}
+
+export async function PATCH(request: Request) {
+  let requestBody: z.infer<typeof patchBodySchema>;
+
+  try {
+    requestBody = patchBodySchema.parse(await request.json());
+  } catch {
+    return jsonResponse({ ok: false, error: "잘못된 요청입니다." }, 400);
+  }
+
+  const userId = await getCurrentUserId();
+  const updated = await setLookFavorite(
+    userId,
+    requestBody.id,
+    requestBody.isFavorite,
+  );
+
+  if (!updated) {
     return jsonResponse(
-      { ok: false, error: "룩을 저장하지 못했습니다." },
-      500,
+      { ok: false, error: "룩을 찾을 수 없습니다." },
+      404,
     );
   }
 
-  return jsonResponse<{ look: SavedLookRecord }>({ ok: true, data: { look } });
+  revalidatePath("/saved");
+  return jsonResponse<{ id: string; isFavorite: boolean }>({
+    ok: true,
+    data: { id: requestBody.id, isFavorite: requestBody.isFavorite },
+  });
 }
 
 export async function DELETE(request: Request) {
@@ -63,18 +102,16 @@ export async function DELETE(request: Request) {
   try {
     requestBody = deleteBodySchema.parse(await request.json());
   } catch {
-    return jsonResponse({ ok: false, error: "?섎せ??????붿껌?낅땲??" }, 400);
+    return jsonResponse({ ok: false, error: "잘못된 삭제 요청입니다." }, 400);
   }
 
   const userId = await getCurrentUserId();
   const deleted = await deleteSavedLook(userId, requestBody.id);
 
   if (!deleted) {
-    return jsonResponse(
-      { ok: false, error: "猷⑹쓣 ??젣?섏지 紐삵뻽?듬땲??" },
-      404,
-    );
+    return jsonResponse({ ok: false, error: "룩을 삭제하지 못했습니다." }, 404);
   }
 
+  revalidatePath("/saved");
   return jsonResponse<{ id: string }>({ ok: true, data: { id: requestBody.id } });
 }

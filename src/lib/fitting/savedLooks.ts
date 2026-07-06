@@ -172,6 +172,32 @@ export async function saveLook({
   return savedManifest ? nextLook : undefined;
 }
 
+export async function setLookFavorite(
+  userId: string,
+  lookId: string,
+  isFavorite: boolean,
+): Promise<boolean> {
+  const config = getStorageConfig();
+  if (!config) {
+    return false;
+  }
+
+  const manifest = await readManifest(userId);
+  const target = manifest.looks.find((look) => look.id === lookId);
+
+  if (!target) {
+    return false;
+  }
+
+  const nextManifest = {
+    looks: manifest.looks.map((look) =>
+      look.id === lookId ? { ...look, isFavorite } : look,
+    ),
+  };
+
+  return writeManifest(userId, nextManifest);
+}
+
 export async function deleteSavedLook(userId: string, lookId: string): Promise<boolean> {
   const config = getStorageConfig();
   if (!config) {

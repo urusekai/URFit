@@ -24,7 +24,8 @@ import type { Cloth, ClothCategory } from "@/types/fitting";
 export const BETA_USER_ID = "beta-user";
 
 const PERSON_IMAGE_BUCKET = "person_beta_image";
-const PERSON_IMAGE_OBJECT_PATH = "female/sample_female_1.png";
+// 배경을 UI 박스와 동일한 크림(#F6F5F2)으로 바꾼 버전. 원본(sample_female_1.png)은 회색 배경.
+const PERSON_IMAGE_OBJECT_PATH = "female/sample_female_1_cream.jpg";
 const LOOK_IMAGE_BUCKET = "look_beta_image";
 
 type WardrobeFolder = {

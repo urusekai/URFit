@@ -1,4 +1,4 @@
-import type { ClosetCategory } from "@/lib/mock/wardrobe";
+import type { ClosetCategory } from "@/lib/wardrobe/catalog";
 
 type ClosetItemIconProps = {
   category: ClosetCategory;

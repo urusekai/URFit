@@ -57,6 +57,26 @@ function jsonResponse<T>(body: ApiResponse<T>, status = 200) {
   return NextResponse.json(body, { status });
 }
 
+// 동일한 옷 조합은 결과를 재사용해 재생성(수십 초)을 건너뛴다.
+// 인메모리 캐시라 서버 재시작 시 사라진다(베타용). 정식 단계에서는 영속 캐시로 교체.
+type FittingResult = { image: string; mimeType: string };
+const MAX_CACHE_ENTRIES = 50;
+const fittingCache = new Map<string, FittingResult>();
+
+function getCacheKey(userId: string, clothIds: string[]) {
+  return `${userId}:${[...clothIds].sort().join(",")}`;
+}
+
+function cacheFittingResult(key: string, result: FittingResult) {
+  if (fittingCache.size >= MAX_CACHE_ENTRIES) {
+    const oldestKey = fittingCache.keys().next().value;
+    if (oldestKey !== undefined) {
+      fittingCache.delete(oldestKey);
+    }
+  }
+  fittingCache.set(key, result);
+}
+
 export async function POST(request: Request) {
   let clothIds: string[];
   try {
@@ -76,6 +96,16 @@ export async function POST(request: Request) {
 
   if (selected.length === 0) {
     return jsonResponse({ ok: false, error: "선택한 옷을 찾을 수 없습니다." }, 400);
+  }
+
+  // 동일 조합이면 캐시된 결과를 즉시 반환
+  const cacheKey = getCacheKey(
+    userId,
+    selected.map((cloth) => cloth.id),
+  );
+  const cached = fittingCache.get(cacheKey);
+  if (cached) {
+    return jsonResponse({ ok: true, data: cached });
   }
 
   const personBase64 = await getUserPhotoBase64(userId);
@@ -103,7 +133,7 @@ export async function POST(request: Request) {
   try {
     const result = await generateImageFromInputs({
       prompt: FITTING_PROMPT,
-      images: [{ data: personBase64, mimeType: "image/png" }, ...garmentImages],
+      images: [{ data: personBase64, mimeType: "image/jpeg" }, ...garmentImages],
       temperature: 0.4,
       // 기본 인물 이미지(1024x1536, 2:3 세로)와 동일한 비율로 강제
       aspectRatio: "2:3",
@@ -116,10 +146,13 @@ export async function POST(request: Request) {
       );
     }
 
-    return jsonResponse({
-      ok: true,
-      data: { image: result.image.data, mimeType: result.image.mimeType },
-    });
+    const data: FittingResult = {
+      image: result.image.data,
+      mimeType: result.image.mimeType,
+    };
+    cacheFittingResult(cacheKey, data);
+
+    return jsonResponse({ ok: true, data });
   } catch (error) {
     console.error("[/api/fitting]", error);
     return jsonResponse(

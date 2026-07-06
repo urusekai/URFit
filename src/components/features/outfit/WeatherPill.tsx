@@ -1,4 +1,4 @@
-import { getWeatherGlyph } from "@/lib/mock/ai-recommendation";
+import { getWeatherGlyph } from "@/lib/outfit/recommendation";
 import type { WeatherSummary } from "@/types/api";
 
 export function WeatherPill({ weather }: { weather: WeatherSummary }) {
