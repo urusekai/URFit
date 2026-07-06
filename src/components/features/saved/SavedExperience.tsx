@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 
 import { cn } from "@/lib/utils/cn";
+import type { ClothCategory } from "@/types/fitting";
 
 type SavedFilter = "all" | "favorite" | "date";
 
@@ -12,6 +13,7 @@ export type SavedLookItem = {
   savedAt: string;
   isFavorite: boolean;
   imageUrl?: string;
+  garments: SavedLookGarment[];
   palette: {
     outer?: string;
     top: string;
@@ -21,6 +23,13 @@ export type SavedLookItem = {
     hair?: string;
     shoe?: string;
   };
+};
+
+export type SavedLookGarment = {
+  id: string;
+  name: string;
+  category?: ClothCategory;
+  imageUrl?: string;
 };
 
 type DeleteLookResponse =
@@ -47,6 +56,14 @@ const FILTERS: Array<{ id: SavedFilter; label: string }> = [
   { id: "favorite", label: "즐겨찾기" },
   { id: "date", label: "날짜별" },
 ];
+
+const CLOTH_CATEGORY_LABEL: Record<ClothCategory, string> = {
+  top: "상의",
+  outer: "아우터",
+  bottom: "하의",
+  shoes: "신발",
+  hat: "모자",
+};
 
 function compareSavedAtDescending(left: SavedLookItem, right: SavedLookItem) {
   return right.savedAt.localeCompare(left.savedAt);
@@ -225,27 +242,130 @@ function StarIcon({ filled }: { filled: boolean }) {
   );
 }
 
+function SavedLookGarmentsSheet({
+  look,
+  onClose,
+}: {
+  look: SavedLookItem;
+  onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-x-0 top-0 bottom-[calc(5.75rem_+_env(safe-area-inset-bottom))] z-[60]">
+      <button
+        type="button"
+        aria-label="저장한 룩 상세 닫기"
+        onClick={onClose}
+        className="absolute inset-0 cursor-pointer bg-charcoal/30"
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="saved-look-garments-title"
+        className="absolute bottom-0 left-1/2 flex max-h-[calc(100dvh_-_7.75rem_-_env(safe-area-inset-bottom))] w-full max-w-md -translate-x-1/2 flex-col overflow-hidden rounded-t-[32px] bg-white px-5 pb-8 pt-4 shadow-[0_-18px_48px_rgba(0,0,0,0.12)]"
+      >
+        <div className="mx-auto h-1.5 w-14 rounded-full bg-surface-muted" />
+        <div className="mt-5 flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h2
+              id="saved-look-garments-title"
+              className="truncate text-xl font-extrabold tracking-[-0.03em] text-foreground"
+            >
+              {look.title}
+            </h2>
+            <p className="mt-1 text-sm font-semibold text-muted">{look.savedAt}</p>
+          </div>
+          <button
+            type="button"
+            aria-label="닫기"
+            onClick={onClose}
+            className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-off-white text-foreground"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path d="m6 6 12 12M18 6 6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="mt-5 min-h-0 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <p className="text-sm font-bold text-foreground">입은 옷</p>
+          {look.garments.length > 0 ? (
+            <div className="mt-3 divide-y divide-border rounded-2xl bg-off-white px-3">
+              {look.garments.map((garment) => (
+                <div key={garment.id} className="flex items-center gap-3 py-3">
+                  <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white">
+                    {garment.imageUrl ? (
+                      // Signed URLs are scoped to this page.
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={garment.imageUrl}
+                        alt=""
+                        className="h-full w-full object-contain p-1.5"
+                        draggable={false}
+                      />
+                    ) : (
+                      <span className="text-xs font-semibold text-muted">없음</span>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[15px] font-extrabold text-foreground">
+                      {garment.name}
+                    </p>
+                    <p className="mt-1 text-sm font-semibold text-muted">
+                      {garment.category ? CLOTH_CATEGORY_LABEL[garment.category] : "옷 정보 없음"}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-3 rounded-2xl bg-off-white px-4 py-6 text-center text-sm font-semibold text-muted">
+              저장된 옷 정보가 없어요.
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function SavedLookCard({
   deleting,
   favoriting,
   item,
   onDelete,
+  onOpen,
   onToggleFavorite,
 }: {
   deleting: boolean;
   favoriting: boolean;
   item: SavedLookItem;
   onDelete: (id: string) => void;
+  onOpen: (item: SavedLookItem) => void;
   onToggleFavorite: (id: string, isFavorite: boolean) => void;
 }) {
   return (
-    <article className="relative overflow-hidden rounded-[26px] border-4 border-[#EFF0EC] bg-[#F9F9F9]">
+    <article
+      role="button"
+      tabIndex={0}
+      aria-label={`${item.title}에 입은 옷 보기`}
+      onClick={() => onOpen(item)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onOpen(item);
+        }
+      }}
+      className="relative cursor-pointer overflow-hidden rounded-[26px] border-4 border-[#EFF0EC] bg-[#F9F9F9]"
+    >
       <button
         type="button"
         aria-label={item.isFavorite ? "즐겨찾기 해제" : "즐겨찾기 추가"}
         aria-pressed={item.isFavorite}
         disabled={favoriting}
-        onClick={() => onToggleFavorite(item.id, !item.isFavorite)}
+        onClick={(event) => {
+          event.stopPropagation();
+          onToggleFavorite(item.id, !item.isFavorite);
+        }}
         className={cn(
           "absolute right-3 top-3 z-10 inline-flex size-8 items-center justify-center rounded-full bg-white/90 shadow-[0_2px_8px_rgba(26,26,26,0.12)] transition disabled:cursor-wait disabled:opacity-60",
           item.isFavorite ? "text-accent" : "text-[#9a968f] hover:text-accent",
@@ -262,10 +382,13 @@ function SavedLookCard({
           <p className="mt-1 text-[14px] text-muted">{item.savedAt}</p>
         </div>
         <button
-          type="button"
-          aria-label="저장한 룩 삭제"
-          disabled={deleting}
-          onClick={() => onDelete(item.id)}
+        type="button"
+        aria-label="저장한 룩 삭제"
+        disabled={deleting}
+        onClick={(event) => {
+          event.stopPropagation();
+          onDelete(item.id);
+        }}
           className="mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-[6px] text-[#747471] transition hover:opacity-85 disabled:cursor-wait disabled:opacity-60"
         >
           <TrashIcon />
@@ -295,6 +418,7 @@ export function SavedExperience({ initialLooks }: SavedExperienceProps) {
   const [looks, setLooks] = useState(() => initialLooks ?? []);
   const [deletingLookId, setDeletingLookId] = useState<string | null>(null);
   const [favoritingLookId, setFavoritingLookId] = useState<string | null>(null);
+  const [selectedLook, setSelectedLook] = useState<SavedLookItem | null>(null);
 
   const filteredLooks = useMemo(
     () => getFilteredLooks(looks, selectedFilter),
@@ -317,6 +441,7 @@ export function SavedExperience({ initialLooks }: SavedExperienceProps) {
       }
 
       setLooks((currentLooks) => currentLooks.filter((look) => look.id !== id));
+      setSelectedLook((current) => (current?.id === id ? null : current));
     } finally {
       setDeletingLookId(null);
     }
@@ -364,6 +489,7 @@ export function SavedExperience({ initialLooks }: SavedExperienceProps) {
       favoriting={favoritingLookId === item.id}
       item={item}
       onDelete={handleDeleteLook}
+      onOpen={setSelectedLook}
       onToggleFavorite={handleToggleFavorite}
     />
   );
@@ -419,6 +545,13 @@ export function SavedExperience({ initialLooks }: SavedExperienceProps) {
           </div>
         )}
       </div>
+
+      {selectedLook ? (
+        <SavedLookGarmentsSheet
+          look={selectedLook}
+          onClose={() => setSelectedLook(null)}
+        />
+      ) : null}
     </section>
   );
 }

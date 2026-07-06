@@ -1,5 +1,6 @@
 "use server";
 
+import { classifyClothStyles } from "@/lib/fitting/autotag";
 import { createClient } from "@/lib/supabase/server";
 import { getStorageConfig, uploadStorageObject } from "@/lib/supabase/storage";
 import type { ApiResponse } from "@/types/api";
@@ -128,6 +129,13 @@ export async function saveOnboarding(formData: FormData): Promise<ApiResponse<nu
     // 옷 사진이나 카테고리가 들어온 경우에만 옷 한 벌을 추가한다.
     const category = toText(formData.get("category"));
     if (clothPhotoPath || category) {
+      // 옷 사진이 있으면 Gemini 비전으로 스타일 자동 태깅 (추천 매칭용)
+      let styles: string[] = [];
+      if (clothPhoto instanceof File && clothPhoto.size > 0) {
+        const base64 = Buffer.from(await clothPhoto.arrayBuffer()).toString("base64");
+        styles = await classifyClothStyles(base64, clothPhoto.type);
+      }
+
       const clothesRow: ClothesInsert = {
         user_id: user.id,
         photo_url: clothPhotoPath,
@@ -136,6 +144,7 @@ export async function saveOnboarding(formData: FormData): Promise<ApiResponse<nu
         fit: toText(formData.get("fit")),
         size: toText(formData.get("size")),
         measurements: parseMeasurements(formData.get("measurements")),
+        styles,
       };
       const { error: clothError } = await supabase.from("clothes").insert(clothesRow);
       if (clothError) throw new Error(`옷 정보 저장 실패: ${clothError.message}`);

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { classifyClothStyles } from "@/lib/fitting/autotag";
 import { createClient } from "@/lib/supabase/server";
 import {
   createSignedUrl,
@@ -104,9 +105,10 @@ export async function saveClosetItem(
     return { ok: false, error: "스토리지 설정이 없습니다." };
   }
 
-  // 옷 사진 업로드 (있을 때만)
+  // 옷 사진 업로드 (있을 때만) + 스타일 자동 태깅
   const clothPhoto = formData.get("clothPhoto");
   let photoPath: string | null = null;
+  let styles: string[] = [];
   if (clothPhoto instanceof File && clothPhoto.size > 0) {
     const ext = clothPhoto.name.split(".").pop()?.toLowerCase() || "jpg";
     photoPath = `${user.id}/${Date.now()}.${ext}`;
@@ -121,6 +123,11 @@ export async function saveClosetItem(
     if (!uploaded) {
       return { ok: false, error: "이미지 업로드에 실패했습니다." };
     }
+    // Gemini 비전으로 스타일 태깅 (추천 매칭용)
+    styles = await classifyClothStyles(
+      buffer.toString("base64"),
+      clothPhoto.type,
+    );
   }
 
   const row: ClothesInsert = {
@@ -131,6 +138,7 @@ export async function saveClosetItem(
     fit: toText(formData.get("fit")),
     size: toText(formData.get("size")),
     measurements: parseMeasurements(formData.get("measurements")),
+    styles,
   };
 
   const { data: inserted, error } = await supabase

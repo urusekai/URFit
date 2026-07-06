@@ -10,7 +10,7 @@ import {
 } from "@/components/features/fitting/FittingLookName";
 import { FittingStage } from "@/components/features/fitting/FittingStage";
 
-export type FittingCategory = "top" | "bottom" | "shoes" | "hat";
+export type FittingCategory = "top" | "outer" | "bottom" | "shoes" | "hat";
 
 export type FittingItem = {
   id: string;
@@ -56,6 +56,7 @@ function getFirstItem(items: FittingItem[], category: FittingCategory) {
 function getInitialSelection(items: FittingItem[]): SelectedFittingItems {
   return {
     top: getFirstItem(items, "top"),
+    outer: null,
     bottom: null,
     shoes: null,
     hat: null,
@@ -65,6 +66,7 @@ function getInitialSelection(items: FittingItem[]): SelectedFittingItems {
 function getEmptySelection(): SelectedFittingItems {
   return {
     top: null,
+    outer: null,
     bottom: null,
     shoes: null,
     hat: null,
@@ -85,18 +87,6 @@ function getSelectionFromIds(
   }
 
   return nextSelection;
-}
-
-function mergeSelection(
-  current: SelectedFittingItems,
-  next: SelectedFittingItems,
-): SelectedFittingItems {
-  return {
-    top: next.top ?? current.top,
-    bottom: next.bottom ?? current.bottom,
-    shoes: next.shoes ?? current.shoes,
-    hat: next.hat ?? current.hat,
-  };
 }
 
 export function FittingExperience({
@@ -180,7 +170,6 @@ export function FittingExperience({
       );
 
       setRecommendedItems(recommendedSelection);
-      setSelectedItems((current) => mergeSelection(current, recommendedSelection));
       setActiveCategory("top");
       resetGeneratedResult();
     } catch {

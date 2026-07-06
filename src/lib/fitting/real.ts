@@ -5,7 +5,7 @@ import {
   getStorageConfig,
 } from "@/lib/supabase/storage";
 import type { Database } from "@/types/database";
-import type { Cloth, ClothCategory } from "@/types/fitting";
+import type { Cloth, ClothCategory, StyleTag } from "@/types/fitting";
 
 /**
  * 정식(로그인 유저) 피팅 데이터 어댑터.
@@ -25,9 +25,10 @@ const LOOK_IMAGE_BUCKET = "look_beta_image";
 
 type ClothesRow = Database["public"]["Tables"]["clothes"]["Row"];
 
-// 온보딩이 저장하는 한글 카테고리 → 도메인 카테고리. 온보딩엔 아우터 항목이 없다.
+// 온보딩/옷장이 저장하는 한글 카테고리 → 도메인 카테고리.
 const KR_CATEGORY_TO_CLOTH: Record<string, ClothCategory> = {
   상의: "top",
+  아우터: "outer",
   하의: "bottom",
   신발: "shoes",
   모자: "hat",
@@ -40,6 +41,14 @@ const CATEGORY_LABEL: Record<ClothCategory, string> = {
   hat: "모자",
   outer: "아우터",
 };
+
+const STYLE_TAGS: StyleTag[] = ["캐주얼", "스트릿", "미니멀", "댄디"];
+
+function toStyleTags(values: string[] | null | undefined): StyleTag[] {
+  return (values ?? []).filter((value): value is StyleTag =>
+    STYLE_TAGS.includes(value as StyleTag),
+  );
+}
 
 /** 로그인 세션에서 auth.uid() 추출 (없으면 undefined). */
 async function getAuthUser() {
@@ -121,7 +130,7 @@ function toCloth(row: ClothesRow): Cloth {
     material,
     formality: "casual",
     seasons: ["all"],
-    styles: [],
+    styles: toStyleTags(row.styles),
     imagePath: row.photo_url ?? "",
     imageUrl: undefined,
   };

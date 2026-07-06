@@ -6,6 +6,15 @@ export type MyPageData = {
   handle: string;
   initials: string;
   bodyInfo: string;
+  profile: {
+    gender: string | null;
+    height: number | null;
+    weight: number | null;
+    age: number | null;
+    bodyType: string | null;
+    style: string | null;
+    brands: string[];
+  };
   stats: {
     savedLooks: number;
     registeredClothes: number;
@@ -19,6 +28,15 @@ const GUEST_DATA: MyPageData = {
   handle: "",
   initials: "U",
   bodyInfo: "",
+  profile: {
+    gender: null,
+    height: null,
+    weight: null,
+    age: null,
+    bodyType: null,
+    style: null,
+    brands: [],
+  },
   stats: { savedLooks: 0, registeredClothes: 0, virtualFittings: 0 },
 };
 
@@ -73,6 +91,15 @@ export async function getMyPageData(): Promise<MyPageData> {
     handle,
     initials: toInitials(name),
     bodyInfo: bodyInfoParts.join(" · "),
+    profile: {
+      gender: profile?.gender ?? null,
+      height: profile?.height ?? null,
+      weight: profile?.weight ?? null,
+      age: profile?.age ?? null,
+      bodyType: profile?.body_type ?? null,
+      style: profile?.style ?? null,
+      brands: profile?.brands ?? [],
+    },
     stats: {
       savedLooks: savedLooksResult.count ?? 0,
       registeredClothes: clothesResult.count ?? 0,

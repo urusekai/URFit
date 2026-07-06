@@ -74,14 +74,14 @@ export function ClosetItemDetailModal({ item, onClose }: ClosetItemDetailModalPr
           </h2>
         </header>
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {view === "care" ? (
             <ClosetItemCareView item={item} />
           ) : (
-            <div className="flex flex-col gap-6 px-4 pb-10">
+            <div className="flex flex-col gap-4 px-4 pb-4">
               <div
-                className="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-2xl"
-                style={{ backgroundColor: item.swatch }}
+                className="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-2xl border bg-white"
+                style={{ borderColor: item.swatch }}
               >
                 {item.imageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -98,7 +98,7 @@ export function ClosetItemDetailModal({ item, onClose }: ClosetItemDetailModalPr
                 )}
               </div>
 
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-2">
                 <div>
                   <h3 className="text-xl font-bold text-foreground">{item.name}</h3>
                   <p className="mt-1 text-sm text-muted">{item.brand}</p>
@@ -107,7 +107,7 @@ export function ClosetItemDetailModal({ item, onClose }: ClosetItemDetailModalPr
                   {[CLOSET_CATEGORY_LABEL[item.category], item.color, item.season].map((tag) => (
                     <span
                       key={tag}
-                      className="inline-flex items-center justify-center whitespace-nowrap rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-foreground"
+                    className="inline-flex items-center justify-center whitespace-nowrap rounded-full border border-border bg-white px-4 py-1.5 text-sm font-medium text-foreground"
                     >
                       {tag}
                     </span>
@@ -157,7 +157,7 @@ export function ClosetItemDetailModal({ item, onClose }: ClosetItemDetailModalPr
                   {item.measurements.map((measurement) => (
                     <div
                       key={measurement.label}
-                      className="flex flex-col items-center gap-1 rounded-xl bg-white py-3.5"
+                    className="flex flex-col items-center gap-1 rounded-xl bg-white py-3"
                     >
                       <span className="text-xs text-muted">{measurement.label}</span>
                       <span className="text-base font-bold text-foreground">

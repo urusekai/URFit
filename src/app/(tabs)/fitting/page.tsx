@@ -10,10 +10,10 @@ import {
 } from "@/lib/fitting";
 import type { Cloth, ClothCategory } from "@/types/fitting";
 
-// 도메인 옷 카테고리 → UI 옷장 탭(4종). 아우터는 상의 탭에 함께 노출.
+// 도메인 옷 카테고리 → UI 옷장 탭.
 const CATEGORY_TO_UI: Record<ClothCategory, FittingCategory> = {
   top: "top",
-  outer: "top",
+  outer: "outer",
   bottom: "bottom",
   shoes: "shoes",
   hat: "hat",

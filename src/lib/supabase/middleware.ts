@@ -9,6 +9,27 @@ function isPublicPath(pathname: string) {
   return PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
 }
 
+type OnboardingProfile = {
+  gender: string | null;
+  height: number | null;
+  weight: number | null;
+  age: number | null;
+  style: string | null;
+  brands: string[] | null;
+};
+
+function isOnboardingComplete(profile: OnboardingProfile | null) {
+  return Boolean(
+    profile?.gender &&
+      profile.height != null &&
+      profile.weight != null &&
+      profile.age != null &&
+      profile.style &&
+      profile.brands &&
+      profile.brands.length > 0,
+  );
+}
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
@@ -54,14 +75,37 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse;
   }
 
-  // 이미 로그인된 유저가 /login에 접근하면 메인으로 되돌린다.
-  if (user && pathname === ROUTES.login) {
-    return redirectWithCookies(ROUTES.main, request, supabaseResponse);
-  }
-
   // 공개 경로가 아닌데 로그인이 안 되어 있으면 /login으로 보낸다.
   if (!user && !isPublicPath(pathname)) {
     return redirectWithCookies(ROUTES.login, request, supabaseResponse);
+  }
+
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("gender,height,weight,age,style,brands")
+      .eq("id", user.id)
+      .maybeSingle<OnboardingProfile>();
+    const onboardingComplete = isOnboardingComplete(profile);
+
+    // 이미 로그인된 유저가 /login에 접근하면 온보딩 완료 여부에 맞춰 보낸다.
+    if (pathname === ROUTES.login) {
+      return redirectWithCookies(
+        onboardingComplete ? ROUTES.main : ROUTES.onboarding,
+        request,
+        supabaseResponse,
+      );
+    }
+
+    // 온보딩 필수값이 없으면 보호 페이지 진입 전에 온보딩으로 보낸다.
+    if (!onboardingComplete && pathname !== ROUTES.onboarding && !isPublicPath(pathname)) {
+      return redirectWithCookies(ROUTES.onboarding, request, supabaseResponse);
+    }
+
+    // 이미 온보딩을 끝낸 유저가 /onboarding에 직접 접근하면 메인으로 보낸다.
+    if (onboardingComplete && pathname === ROUTES.onboarding) {
+      return redirectWithCookies(ROUTES.main, request, supabaseResponse);
+    }
   }
 
   return supabaseResponse;

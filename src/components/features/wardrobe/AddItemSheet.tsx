@@ -163,7 +163,7 @@ export function AddItemSheet({ onClose, onAdd }: AddItemSheetProps) {
         <form
           id="add-item-form"
           onSubmit={handleSubmit}
-          className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           <div className="flex flex-col gap-6 px-4 pb-8">
             <label className="relative flex aspect-[3/2] w-full cursor-pointer flex-col items-center justify-center gap-3 overflow-hidden rounded-2xl border-2 border-dashed border-border">

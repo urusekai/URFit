@@ -17,6 +17,7 @@ const SELECT_LABEL = "\uc120\ud0dd";
 
 const categoryItems = [
   { category: "top", label: "\uc0c1\uc758" },
+  { category: "outer", label: "\uc544\uc6b0\ud130" },
   { category: "bottom", label: "\ud558\uc758" },
   { category: "shoes", label: "\uc2e0\ubc1c" },
   { category: "hat", label: "\ubaa8\uc790" },
@@ -193,7 +194,7 @@ export function FittingClosetSection({
                 selected={activeCategory === item.category}
                 onClick={() => onSelectCategory(item.category)}
                 className={[
-                  "h-[25px] min-w-[47px] border-transparent px-3 py-0 text-[13px] font-semibold",
+                  "h-[25px] min-w-[43px] border-transparent px-2.5 py-0 text-[13px] font-semibold",
                   activeCategory === item.category
                     ? "bg-[#202124] text-white"
                     : "bg-[#eff0ec] text-[#73736f] hover:bg-[#e6e7e2]",

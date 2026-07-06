@@ -69,6 +69,7 @@ export type Database = {
           fit: string | null;
           size: string | null;
           measurements: Json;
+          styles: string[];
           created_at: string;
         };
         Insert: {
@@ -80,6 +81,7 @@ export type Database = {
           fit?: string | null;
           size?: string | null;
           measurements?: Json;
+          styles?: string[];
           created_at?: string;
         };
         Update: {
@@ -91,6 +93,7 @@ export type Database = {
           fit?: string | null;
           size?: string | null;
           measurements?: Json;
+          styles?: string[];
           created_at?: string;
         };
         Relationships: [];

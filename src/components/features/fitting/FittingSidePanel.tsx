@@ -6,6 +6,7 @@ import type {
 } from "@/components/features/fitting/FittingExperience";
 
 const TOP_LABEL = "\uc0c1\uc758";
+const OUTER_LABEL = "\uc544\uc6b0\ud130";
 const BOTTOM_LABEL = "\ud558\uc758";
 const SHOES_LABEL = "\uc2e0\ubc1c";
 const HAT_LABEL = "\ubaa8\uc790";
@@ -25,13 +26,13 @@ type FittingSidePanelProps = {
 type SidePanelItem = {
   category: FittingCategory;
   label: string;
-  isExtraAddSlot?: boolean;
 };
 
 const itemLabels: SidePanelItem[] = [
   { category: "top", label: TOP_LABEL },
   { category: "bottom", label: BOTTOM_LABEL },
   { category: "shoes", label: SHOES_LABEL },
+  { category: "outer", label: OUTER_LABEL },
   { category: "hat", label: HAT_LABEL },
 ];
 const FILLED_ITEM_STYLE = "border-white bg-white text-[#b0876a]";
@@ -45,25 +46,20 @@ export function FittingSidePanel({
   highlightActive = true,
   onSelectCategory,
 }: FittingSidePanelProps) {
-  const hasHat = Boolean(selectedItems.hat);
-  const panelItems: SidePanelItem[] = hasHat
-    ? [...itemLabels, { category: "hat", label: ADD_LABEL, isExtraAddSlot: true }]
-    : itemLabels;
-
   return (
     <div className={`flex w-[68px] shrink-0 flex-col ${align === "right" ? "items-end" : "items-start"}`}>
       <p className="min-h-6 w-full text-center text-[14px] font-semibold leading-5 text-muted">{title}</p>
-      <div className="mt-2 flex w-full flex-col gap-[22px]">
-        {panelItems.map((item) => {
-          const selectedItem = item.isExtraAddSlot ? null : selectedItems[item.category];
-          const isActive = activeCategory === item.category && !item.isExtraAddSlot;
-          const isEmptyHatSlot = item.category === "hat" && !selectedItem;
-          const isAddSlot = item.isExtraAddSlot || isEmptyHatSlot;
+      <div className="mt-2 flex w-full flex-col gap-2.5">
+        {itemLabels.map((item) => {
+          const selectedItem = selectedItems[item.category];
+          const isActive = activeCategory === item.category;
+          const isOptionalCategory = item.category === "outer" || item.category === "hat";
+          const isAddSlot = isOptionalCategory && !selectedItem;
           const label = isAddSlot ? ADD_LABEL : item.label;
 
           return (
             <button
-              key={item.isExtraAddSlot ? "hat-add" : item.category}
+              key={item.category}
               type="button"
               aria-pressed={isActive}
               onClick={() => onSelectCategory(item.category)}

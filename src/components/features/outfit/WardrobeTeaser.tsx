@@ -9,7 +9,7 @@ export function WardrobeTeaser({ items }: { items: ClosetItem[] }) {
   const isEmpty = items.length < MIN_ITEMS_REQUIRED;
 
   return (
-    <section className="flex flex-col gap-3">
+    <section className="mt-2 flex flex-col gap-3">
       <h2 className="text-[18px] font-bold text-[#323232]">나만의 옷장</h2>
 
       {isEmpty ? (
