@@ -10,35 +10,60 @@ export function WardrobeTeaser({ items }: { items: ClosetItem[] }) {
 
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="text-base font-bold text-foreground">나만의 옷장</h2>
+      <h2 className="text-[18px] font-bold text-[#323232]">나만의 옷장</h2>
 
       {isEmpty ? (
         <Link
           href={ROUTES.closet}
-          className="flex flex-col items-center justify-center gap-3 rounded-2xl bg-accent px-6 py-10 text-center text-white transition hover:opacity-95"
+          className="flex items-center gap-4 rounded-[10px] border border-[#efede9] bg-white px-4 py-3.5 shadow-[0_1px_5px_rgba(32,33,36,0.08)] transition hover:bg-off-white/60"
         >
-          <span className="flex size-12 items-center justify-center rounded-full bg-white/20">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
-              <path
-                d="M12 4.5 8.5 7H6.5v12h11V7h-2L12 4.5Z"
-                stroke="#fff"
-                strokeWidth="1.6"
-                strokeLinejoin="round"
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-[12px] bg-accent text-white">
+            <svg width="27" height="27" viewBox="0 0 27 27" fill="none" aria-hidden>
+              <rect
+                x="6.5"
+                y="7.5"
+                width="12"
+                height="15"
+                rx="2.5"
+                stroke="currentColor"
+                strokeWidth="1.5"
               />
-              <path d="M15 9.5v2M9 9.5v2" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" />
+              <path
+                d="M11 10.5v9M15 10.5v9"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+              <path
+                d="M20.5 5.5v5M18 8h5"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+              />
             </svg>
           </span>
-          <div>
-            <p className="text-sm font-semibold">옷장을 채워볼까요?</p>
-            <p className="mt-1 text-xs text-white/80">
+          <div className="min-w-0 flex-1">
+            <p className="text-[15px] font-extrabold leading-5 text-foreground">
+              옷장을 채워볼까요?
+            </p>
+            <p className="text-xs leading-4 text-muted">
               (최소 {MIN_ITEMS_REQUIRED}개 등록 필요)
             </p>
           </div>
+          <svg className="shrink-0 text-muted" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <path
+              d="m9 6 6 6-6 6"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
         </Link>
       ) : (
         <Link
           href={ROUTES.closet}
-          className="flex items-center gap-3 rounded-2xl border border-border/70 bg-white px-4 py-3.5 transition hover:bg-off-white/60"
+          className="flex items-center gap-3 rounded-2xl border border-transparent bg-[#eff0ec] px-4 py-3.5 transition hover:bg-[#e7e8e2]"
         >
           <div className="flex -space-x-2">
             {items.slice(0, 4).map((item) => (

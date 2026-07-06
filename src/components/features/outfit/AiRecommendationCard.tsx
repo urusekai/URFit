@@ -1,32 +1,119 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ROUTES } from "@/constants/app";
 import type { OutfitRecommendation } from "@/lib/outfit/recommendation";
 
+const EMPTY_RECOMMENDATIONS: OutfitRecommendation[] = [];
+
 export function AiRecommendationCard({
-  recommendation,
+  recommendations = EMPTY_RECOMMENDATIONS,
 }: {
-  recommendation: OutfitRecommendation;
+  recommendations?: OutfitRecommendation[];
 }) {
+  const slides = useMemo(
+    () => recommendations.filter((item) => item.recommendationImageUrl ?? item.imageUrl),
+    [recommendations],
+  );
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartX = useRef<number | null>(null);
+  const slideCount = slides.length;
+  const activeSlideIndex = slideCount > 0 ? activeIndex % slideCount : 0;
+  const recommendation = slides[activeSlideIndex] ?? recommendations[0];
+  const hasMultipleSlides = slideCount > 1;
+
+  useEffect(() => {
+    if (!hasMultipleSlides || isDragging) return;
+
+    const timer = window.setInterval(() => {
+      setActiveIndex((current) => (current + 1) % slideCount);
+    }, 5000);
+
+    return () => window.clearInterval(timer);
+  }, [hasMultipleSlides, isDragging, slideCount]);
+
+  if (!recommendation) return null;
+
   const visualSrc = recommendation.recommendationImageUrl ?? recommendation.imageUrl;
   const visualAlt = recommendation.recommendationImageAlt ?? recommendation.imageAlt ?? "";
 
+  const goToSlide = (nextIndex: number) => {
+    if (!hasMultipleSlides) return;
+
+    setActiveIndex((nextIndex + slideCount) % slideCount);
+  };
+
+  const startDrag = (clientX: number) => {
+    if (!hasMultipleSlides) return;
+
+    dragStartX.current = clientX;
+    setIsDragging(true);
+  };
+
+  const moveDrag = (clientX: number) => {
+    if (dragStartX.current === null) return;
+
+    const distance = clientX - dragStartX.current;
+    setDragOffset(Math.max(-72, Math.min(72, distance)));
+  };
+
+  const finishDrag = (clientX: number) => {
+    if (dragStartX.current === null) return;
+
+    const distance = dragStartX.current - clientX;
+    dragStartX.current = null;
+    setIsDragging(false);
+    setDragOffset(0);
+
+    if (Math.abs(distance) < 44) return;
+    goToSlide(activeSlideIndex + (distance > 0 ? 1 : -1));
+  };
+
   return (
     <div className="flex flex-col items-center">
-      <div className="relative h-[258px] w-full overflow-hidden">
-        <div className="absolute left-1/2 top-8 h-[214px] w-[218px] -translate-x-[62%] rotate-[-9deg] rounded-[18px] bg-[#efede9]" />
-        <div className="absolute left-1/2 top-8 h-[214px] w-[218px] -translate-x-[38%] rotate-[8deg] rounded-[18px] bg-[#efede9]" />
+      <div
+        className={
+          hasMultipleSlides
+            ? "relative h-[340px] w-full touch-pan-y overflow-hidden cursor-grab active:cursor-grabbing"
+            : "relative h-[340px] w-full overflow-hidden"
+        }
+        onPointerDown={(event) => {
+          event.currentTarget.setPointerCapture(event.pointerId);
+          startDrag(event.clientX);
+        }}
+        onPointerMove={(event) => {
+          moveDrag(event.clientX);
+        }}
+        onPointerUp={(event) => {
+          finishDrag(event.clientX);
+        }}
+        onPointerCancel={() => {
+          dragStartX.current = null;
+          setIsDragging(false);
+          setDragOffset(0);
+        }}
+      >
+        <div className="absolute left-1/2 top-6 h-[286px] w-[288px] -translate-x-[62%] rotate-[-9deg] rounded-[20px] bg-[#efede9]" />
+        <div className="absolute left-1/2 top-1 h-[286px] w-[288px] -translate-x-[36%] rotate-[8deg] rounded-[20px] bg-[#efede9]" />
 
-        <div className="absolute left-1/2 top-0 flex h-[244px] w-[220px] -translate-x-1/2 items-center justify-center rounded-[18px] bg-[#f7f6f3] shadow-sm">
-          <div className="relative h-[178px] w-[144px] bg-white">
+        <div
+          className="absolute left-1/2 top-0 flex h-[322px] w-[292px] items-center justify-center rounded-[20px] bg-[#f7f6f3] shadow-sm transition-transform duration-200"
+          style={{ transform: `translateX(calc(-50% + ${dragOffset}px))` }}
+        >
+          <div className="relative h-[236px] w-[192px] overflow-hidden bg-white">
             {visualSrc ? (
               <Image
+                key={visualSrc}
                 src={visualSrc}
                 alt={visualAlt}
                 fill
-                sizes="144px"
-                className="object-contain p-1"
-                priority
+                sizes="192px"
+                className="object-contain p-1 transition-opacity duration-300"
+                priority={activeSlideIndex === 0}
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center text-accent">
@@ -43,23 +130,34 @@ export function AiRecommendationCard({
       </div>
 
       <div className="mt-0 flex items-center justify-center gap-1.5">
-        <span className="h-1.5 w-5 rounded-full bg-accent" />
-        <span className="size-1.5 rounded-full bg-[#dedbd5]" />
-        <span className="size-1.5 rounded-full bg-[#dedbd5]" />
+        {slides.map((slide, index) => (
+          <button
+            key={`${slide.title}-${index}`}
+            type="button"
+            aria-label={`${index + 1}번째 추천 보기`}
+            aria-current={index === activeSlideIndex ? "true" : undefined}
+            className={
+              index === activeSlideIndex
+                ? "h-1.5 w-5 rounded-full bg-accent transition-all"
+                : "size-1.5 rounded-full bg-[#dedbd5] transition-all"
+            }
+            onClick={() => goToSlide(index)}
+          />
+        ))}
       </div>
 
       <div className="mt-4 text-center">
-        <h3 className="text-base font-extrabold text-foreground">
+        <h3 className="text-[19px] font-extrabold text-foreground">
           {recommendation.title}
         </h3>
-        <p className="mt-2 text-sm leading-5 text-muted">
+        <p className="mt-1.5 text-sm font-semibold leading-5 text-[#6B6B68]">
           {recommendation.description}
         </p>
       </div>
 
       <Link
         href={ROUTES.fitting}
-        className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-[10px] bg-accent px-4 text-sm font-extrabold text-white transition hover:opacity-90"
+        className="mt-4 inline-flex h-[52px] w-full items-center justify-center gap-2 rounded-[14px] bg-accent px-4 text-[17px] font-extrabold text-white transition hover:opacity-90"
       >
         <svg width="25" height="22" viewBox="0 0 25 22" fill="none" aria-hidden>
           <path

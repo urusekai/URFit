@@ -5,7 +5,11 @@ import { WeatherTipBanner } from "@/components/features/outfit/WeatherTipBanner"
 import { PageHeader } from "@/components/layout/PageHeader";
 import { APP_NAME } from "@/constants/app";
 import { getCurrentUserId, getWardrobe } from "@/lib/fitting";
-import { getFeaturedAiRecommendation, getGreeting, getWeatherTip } from "@/lib/outfit/recommendation";
+import {
+  buildFeaturedRecommendations,
+  getGreeting,
+  getWeatherTip,
+} from "@/lib/outfit/recommendation";
 import { toClosetItems } from "@/lib/wardrobe/catalog";
 import { getCurrentWeather } from "@/lib/weather/openweather";
 import type { WeatherSummary } from "@/types/api";
@@ -21,7 +25,6 @@ const FALLBACK_WEATHER: WeatherSummary = {
   icon: "01d",
 };
 
-/** OpenWeather 연동 실패 시(키 미설정, API 오류 등) 데모가 끊기지 않도록 기본값으로 대체합니다. */
 async function getWeatherSafely(): Promise<WeatherSummary> {
   try {
     return await getCurrentWeather();
@@ -30,7 +33,6 @@ async function getWeatherSafely(): Promise<WeatherSummary> {
   }
 }
 
-// 실제 프로필 연동 전까지 사용하는 임시 사용자명
 const DEMO_USER_NAME = "지우";
 
 export default async function MainPage() {
@@ -40,7 +42,7 @@ export default async function MainPage() {
     getWardrobe(userId),
   ]);
   const closetItems = toClosetItems(clothes);
-  const recommendation = getFeaturedAiRecommendation();
+  const recommendations = buildFeaturedRecommendations(closetItems);
   const tip = getWeatherTip(weather);
   const greeting = getGreeting();
 
@@ -48,24 +50,26 @@ export default async function MainPage() {
     <>
       <PageHeader title={APP_NAME} actions={<WeatherPill weather={weather} />} />
 
-      <div className="flex flex-col gap-6 pb-6">
+      <div className="mt-3 flex flex-col gap-6 pb-6">
         <div>
           <p className="text-sm text-muted">
             {greeting}, {DEMO_USER_NAME}님
           </p>
-          <h2 className="mt-1 text-xl font-bold text-foreground">오늘 뭐 입지?</h2>
+          <h2 className="mt-1 text-[30px] font-extrabold leading-tight text-[#323232]">
+            오늘 뭐 입지?
+          </h2>
         </div>
 
         <WeatherTipBanner tip={tip} />
 
         <section className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-bold text-foreground">오늘의 AI 추천</h2>
-            <span className="rounded-full bg-accent px-2.5 py-1 text-[11px] font-bold tracking-wide text-white">
+            <h2 className="text-[18px] font-bold text-[#323232]">오늘의 AI 추천</h2>
+            <span className="inline-flex h-6 min-w-10 items-center justify-center rounded-full bg-accent px-3 text-[12px] font-bold tracking-wide text-white">
               AI
             </span>
           </div>
-          <AiRecommendationCard recommendation={recommendation} />
+          <AiRecommendationCard recommendations={recommendations} />
         </section>
 
         <WardrobeTeaser items={closetItems} />
