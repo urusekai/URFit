@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { getStorageConfig, uploadStorageObject } from "@/lib/supabase/storage";
 import type { ApiResponse } from "@/types/api";
 import type { Database } from "@/types/database";
 
@@ -43,15 +44,19 @@ function parseMeasurements(value: FormDataEntryValue | null): Record<string, num
   }
 }
 
-type UploadClient = Awaited<ReturnType<typeof createClient>>;
+type StorageConfig = NonNullable<ReturnType<typeof getStorageConfig>>;
 
 /**
  * 비공개 버킷의 `{userId}/` 폴더 아래에 이미지를 올리고 객체 경로를 돌려준다.
  * 파일이 없으면 업로드를 건너뛰고 null을 반환한다.
  * 반환하는 경로(`{userId}/{timestamp}.ext`)를 DB에 저장하고, 조회 시 서명 URL로 연다.
+ *
+ * 업로드는 서비스키(storage config)로 수행한다. 유저 세션으로 올리면 storage.objects
+ * RLS insert 정책이 필요한데, 앱의 다른 스토리지 접근이 모두 서비스키를 쓰므로 여기에 맞춘다.
+ * 경로가 인증된 user.id로 고정되므로 유저별 격리는 서버 코드가 보장한다.
  */
 async function uploadPhoto(
-  supabase: UploadClient,
+  config: StorageConfig,
   bucket: string,
   userId: string,
   file: File | null,
@@ -61,11 +66,15 @@ async function uploadPhoto(
   const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
   const path = `${userId}/${Date.now()}.${ext}`;
 
-  const { error } = await supabase.storage.from(bucket).upload(path, file, {
-    contentType: file.type || "image/jpeg",
-    upsert: true,
-  });
-  if (error) throw new Error(`이미지 업로드 실패: ${error.message}`);
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const ok = await uploadStorageObject(
+    config,
+    bucket,
+    path,
+    buffer,
+    file.type || "image/jpeg",
+  );
+  if (!ok) throw new Error(`이미지 업로드 실패: ${bucket}`);
 
   return path;
 }
@@ -87,12 +96,17 @@ export async function saveOnboarding(formData: FormData): Promise<ApiResponse<nu
   }
 
   try {
+    const config = getStorageConfig();
+    if (!config) {
+      throw new Error("스토리지 설정이 없습니다. 관리자에게 문의해 주세요.");
+    }
+
     const bodyPhoto = formData.get("bodyPhoto");
     const clothPhoto = formData.get("clothPhoto");
 
     const [bodyPhotoPath, clothPhotoPath] = await Promise.all([
-      uploadPhoto(supabase, BODY_BUCKET, user.id, bodyPhoto instanceof File ? bodyPhoto : null),
-      uploadPhoto(supabase, CLOTHES_BUCKET, user.id, clothPhoto instanceof File ? clothPhoto : null),
+      uploadPhoto(config, BODY_BUCKET, user.id, bodyPhoto instanceof File ? bodyPhoto : null),
+      uploadPhoto(config, CLOTHES_BUCKET, user.id, clothPhoto instanceof File ? clothPhoto : null),
     ]);
 
     const brands = formData.getAll("brands").map(String);

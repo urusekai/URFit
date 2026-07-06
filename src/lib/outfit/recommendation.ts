@@ -101,47 +101,29 @@ export function getFeaturedAiRecommendation(): OutfitRecommendation {
   return FEATURED_AI_RECOMMENDATION;
 }
 
-/** 홈 캐러셀용 큐레이션 룩 (대표 이미지는 옷장 상품 이미지에서 가져온다) */
-const FEATURED_LOOKS: Array<{
-  clothId: string;
-  title: string;
-  description: string;
-}> = [
-  {
-    clothId: "outers-sample_outer_2",
-    title: "차분한 뉴트럴 오피스룩",
-    description: "신선한 날씨엔 자켓에 슬랙스, 톤온톤으로 정돈된 인상을 줘요.",
-  },
-  {
-    clothId: "outers-sample_outer_5",
-    title: "댄디 클래식 재킷룩",
-    description: "네이비 재킷과 슬랙스로 단정하고 격식 있는 무드를 완성해요.",
-  },
-  {
-    clothId: "shirts-sample_shirt_1",
-    title: "편안한 데일리 캐주얼",
-    description: "네이비 맨투맨에 데님을 매치해 힘을 뺀 하루를 완성해요.",
-  },
-];
+type FeaturedCloth = { id: string; name?: string; imageUrl?: string };
 
-type FeaturedCloth = { id: string; imageUrl?: string };
-
-/** 옷장 이미지를 대표 이미지로 매핑해 캐러셀 슬라이드 목록을 만든다. */
+/**
+ * 사용자가 등록한 옷을 홈 캐러셀 슬라이드로 만든다.
+ * 대표 이미지는 등록한 옷 사진을 그대로 쓰고(최근 등록순, 최대 5장),
+ * 등록한 옷이 없으면 기본 추천 한 장으로 폴백해 카드가 비지 않게 한다.
+ */
 export function buildFeaturedRecommendations(
   clothes: FeaturedCloth[],
 ): OutfitRecommendation[] {
-  const byId = new Map(clothes.map((cloth) => [cloth.id, cloth]));
+  const withImage = clothes.filter((cloth) => cloth.imageUrl);
+  if (withImage.length === 0) {
+    return [FEATURED_AI_RECOMMENDATION];
+  }
 
-  return FEATURED_LOOKS.map((look) => ({
+  return withImage.slice(0, 5).map((cloth) => ({
     styleTag: "AI 데일리 추천",
     matchPercent: 94,
-    title: look.title,
-    description: look.description,
+    title: cloth.name ?? "오늘의 추천",
+    description: "내 옷장에서 고른 오늘의 추천 아이템이에요.",
     ctaLabel: "가상피팅으로 입어보기",
-    recommendationImageUrl:
-      byId.get(look.clothId)?.imageUrl ??
-      FEATURED_AI_RECOMMENDATION.recommendationImageUrl,
-    recommendationImageAlt: look.title,
+    recommendationImageUrl: cloth.imageUrl,
+    recommendationImageAlt: cloth.name ?? "추천 아이템",
   }));
 }
 

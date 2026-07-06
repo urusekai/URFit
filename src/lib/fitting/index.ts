@@ -1,15 +1,14 @@
 /**
  * 가상 피팅 데이터 어댑터의 진입점.
  *
- * 현재는 베타 구현(Storage + 고정 유저)을 그대로 노출한다.
- * 정식 전환 시 이 파일에서 export 대상을 real 구현으로 바꾸면
- * (또는 런타임 플래그로 분기하면) 나머지 코드는 손대지 않아도 된다.
+ * 정식(로그인 유저) 구현을 노출한다: 전신 사진은 profiles.body_photo_url,
+ * 옷은 clothes 테이블 + 온보딩에서 등록한 사진. 베타 샘플 구현(beta.ts)은
+ * 참고용으로 남겨 둔다(여기 export만 바꾸면 다시 전환 가능).
  */
 export {
-  BETA_USER_ID,
   getCurrentUserId,
   getUserPhotoSignedUrl,
   getUserPhotoBase64,
   getWardrobe,
   getClothBase64,
-} from "@/lib/fitting/beta";
+} from "@/lib/fitting/real";

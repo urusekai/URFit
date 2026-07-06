@@ -186,6 +186,12 @@ export async function uploadStorageObject(
     },
   );
 
+  if (!response.ok) {
+    console.error(
+      `[uploadStorageObject] ${response.status} ${bucket}/${objectPath}: ${await response.text()}`,
+    );
+  }
+
   return response.ok;
 }
 

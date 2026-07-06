@@ -1,3 +1,4 @@
+import type { Database } from "@/types/database";
 import type { Cloth, ClothCategory, Season } from "@/types/fitting";
 
 export type ClosetCategory = "top" | "bottom" | "shoes" | "hat";
@@ -157,4 +158,70 @@ export function toClosetItem(cloth: Cloth, index: number): ClosetItem {
 
 export function toClosetItems(clothes: Cloth[]): ClosetItem[] {
   return clothes.map(toClosetItem);
+}
+
+type ClothesRow = Database["public"]["Tables"]["clothes"]["Row"];
+
+// 온보딩은 카테고리를 한글로 저장한다(상의/하의/신발/모자). 옷장 enum으로 매핑.
+const KR_CATEGORY_TO_CLOSET: Record<string, ClosetCategory> = {
+  상의: "top",
+  하의: "bottom",
+  신발: "shoes",
+  모자: "hat",
+};
+
+/** clothes 행의 measurements(jsonb 맵)를 상세 표시용 목록으로. 비면 카테고리 기본치. */
+function toMeasurementList(
+  measurements: ClothesRow["measurements"],
+  category: ClosetCategory,
+): ClosetMeasurement[] {
+  if (
+    measurements &&
+    typeof measurements === "object" &&
+    !Array.isArray(measurements)
+  ) {
+    const entries = Object.entries(measurements as Record<string, unknown>)
+      .filter(([, value]) => value != null && String(value).trim() !== "")
+      .map(([label, value]) => ({ label, value: String(value) }));
+    if (entries.length > 0) {
+      return entries;
+    }
+  }
+  return DEFAULT_MEASUREMENTS[category];
+}
+
+/**
+ * 로그인 사용자가 등록한 clothes 행을 옷장 카드용 ClosetItem으로 변환한다.
+ * 온보딩이 받지 않는 값(이름·색상·계절)은 기본값으로 채운다.
+ * 매핑 불가한 카테고리는 null을 반환하니 호출부에서 걸러낸다.
+ */
+export function toClosetItemFromRow(
+  row: ClothesRow,
+  imageUrl?: string,
+): ClosetItem | null {
+  const category = KR_CATEGORY_TO_CLOSET[row.category ?? ""];
+  if (!category) {
+    return null;
+  }
+
+  const categoryLabel = CLOSET_CATEGORY_LABEL[category];
+  const name = [row.material, categoryLabel].filter(Boolean).join(" ") || categoryLabel;
+
+  return {
+    id: row.id,
+    name,
+    brand: "내 옷장",
+    category,
+    swatch: "#f2f1ed",
+    accent: "#6b6b68",
+    createdAt: row.created_at,
+    color: "미상",
+    season: "-",
+    material: row.material ?? "미상",
+    fit: row.fit ?? "-",
+    careInfo: "의류 케어 보기",
+    source: "직접 등록",
+    imageUrl,
+    measurements: toMeasurementList(row.measurements, category),
+  };
 }
