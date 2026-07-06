@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useMemo, useState } from "react";
-import { Chip } from "@/components/ui/Chip";
+import { ChipSwiper } from "@/components/ui/ChipSwiper";
 import { Input } from "@/components/ui/Input";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { IMAGES } from "@/constants/assets";
@@ -23,6 +23,11 @@ const SORT_LABEL: Record<SortOption, string> = {
   recent: "최근 등록순",
   name: "이름순",
 };
+
+const CATEGORY_FILTER_OPTIONS: { value: CategoryFilter; label: string }[] = [
+  { value: "all", label: "전체" },
+  ...CLOSET_CATEGORIES,
+];
 
 type ClosetViewProps = {
   initialItems: ClosetItem[];
@@ -77,20 +82,12 @@ export function ClosetView({ initialItems }: ClosetViewProps) {
           icon={<Image src={IMAGES.icons.search} alt="" width={15} height={19} aria-hidden />}
         />
 
-        <div className="flex flex-wrap gap-2">
-          <Chip selected={category === "all"} onClick={() => setCategory("all")}>
-            전체
-          </Chip>
-          {CLOSET_CATEGORIES.map((item) => (
-            <Chip
-              key={item.value}
-              selected={category === item.value}
-              onClick={() => setCategory(item.value)}
-            >
-              {item.label}
-            </Chip>
-          ))}
-        </div>
+        <ChipSwiper
+          options={CATEGORY_FILTER_OPTIONS}
+          value={category}
+          onChange={setCategory}
+          ariaLabel="옷장 카테고리"
+        />
 
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted">

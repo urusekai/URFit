@@ -17,5 +17,12 @@ export const IMAGES = {
   icons: {
     delete: "/images/icons/delete.svg",
     search: "/images/icons/search.svg",
+    tab: {
+      main: "/images/icons/main.svg",
+      closet: "/images/icons/closet.svg",
+      fitting: "/images/icons/vitual-fit.svg",
+      saved: "/images/icons/saved.svg",
+      mypage: "/images/icons/mypage.svg",
+    },
   },
 } as const;
