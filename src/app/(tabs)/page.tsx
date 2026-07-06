@@ -4,13 +4,12 @@ import { WeatherPill } from "@/components/features/outfit/WeatherPill";
 import { WeatherTipBanner } from "@/components/features/outfit/WeatherTipBanner";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { APP_NAME } from "@/constants/app";
-import { getCurrentUserId, getWardrobe } from "@/lib/fitting";
 import {
   buildFeaturedRecommendations,
   getGreeting,
   getWeatherTip,
 } from "@/lib/outfit/recommendation";
-import { toClosetItems } from "@/lib/wardrobe/catalog";
+import { getMyClosetItems } from "@/lib/wardrobe/closet";
 import { getCurrentWeather } from "@/lib/weather/openweather";
 import type { WeatherSummary } from "@/types/api";
 
@@ -36,12 +35,10 @@ async function getWeatherSafely(): Promise<WeatherSummary> {
 const DEMO_USER_NAME = "지우";
 
 export default async function MainPage() {
-  const userId = await getCurrentUserId();
-  const [weather, clothes] = await Promise.all([
+  const [weather, closetItems] = await Promise.all([
     getWeatherSafely(),
-    getWardrobe(userId),
+    getMyClosetItems(),
   ]);
-  const closetItems = toClosetItems(clothes);
   const recommendations = buildFeaturedRecommendations(closetItems);
   const tip = getWeatherTip(weather);
   const greeting = getGreeting();

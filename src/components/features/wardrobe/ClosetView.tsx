@@ -2,9 +2,10 @@
 
 import Image from "next/image";
 import { useMemo, useState } from "react";
+import { deleteClosetItem } from "@/app/(tabs)/closet/actions";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { ChipSwiper } from "@/components/ui/ChipSwiper";
 import { Input } from "@/components/ui/Input";
-import { PageHeader } from "@/components/layout/PageHeader";
 import { IMAGES } from "@/constants/assets";
 import {
   CLOSET_CATEGORIES,
@@ -41,6 +42,7 @@ export function ClosetView({ initialItems }: ClosetViewProps) {
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ClosetItem | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const filteredItems = useMemo(() => {
     const keyword = query.trim().toLowerCase();
@@ -61,8 +63,16 @@ export function ClosetView({ initialItems }: ClosetViewProps) {
     );
   }, [items, category, query, sort]);
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
+    const target = items.find((item) => item.id === id);
     setItems((prev) => prev.filter((item) => item.id !== id));
+    setDeleteError(null);
+
+    const result = await deleteClosetItem(id);
+    if (!result.ok && target) {
+      setItems((prev) => [target, ...prev]);
+      setDeleteError(result.error);
+    }
   };
 
   const handleAdd = (item: ClosetItem) => {
@@ -165,6 +175,15 @@ export function ClosetView({ initialItems }: ClosetViewProps) {
 
       {selectedItem ? (
         <ClosetItemDetailModal item={selectedItem} onClose={() => setSelectedItem(null)} />
+      ) : null}
+
+      {deleteError ? (
+        <div
+          role="alert"
+          className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 rounded-full bg-[#c0392b] px-5 py-3 text-[13px] font-semibold text-white"
+        >
+          {deleteError}
+        </div>
       ) : null}
     </>
   );

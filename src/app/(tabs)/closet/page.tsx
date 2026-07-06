@@ -1,10 +1,8 @@
 import { ClosetView } from "@/components/features/wardrobe/ClosetView";
-import { getCurrentUserId, getWardrobe } from "@/lib/fitting";
-import { toClosetItems } from "@/lib/wardrobe/catalog";
+import { getMyClosetItems } from "@/lib/wardrobe/closet";
 
 export default async function ClosetPage() {
-  const userId = await getCurrentUserId();
-  const clothes = await getWardrobe(userId);
+  const items = await getMyClosetItems();
 
-  return <ClosetView initialItems={toClosetItems(clothes)} />;
+  return <ClosetView initialItems={items} />;
 }
