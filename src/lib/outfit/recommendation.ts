@@ -1,0 +1,233 @@
+import { IMAGES } from "@/constants/assets";
+import type { WeatherSummary } from "@/types/api";
+import type { Cloth, StyleTag } from "@/types/fitting";
+import type { RecommendData } from "./recommend-engine";
+
+export type OutfitRecommendation = {
+  styleTag: string;
+  matchPercent: number;
+  title: string;
+  description: string;
+  ctaLabel: string;
+  lookTitle?: string;
+  lookDescription?: string;
+  imageUrl?: string;
+  imageAlt?: string;
+  recommendationImageUrl?: string;
+  recommendationImageAlt?: string;
+};
+
+export const FEATURED_AI_RECOMMENDATION: OutfitRecommendation = {
+  styleTag: "AI 데일리 추천",
+  matchPercent: 94,
+  title: "차분한 뉴트럴 오피스룩",
+  description:
+    "신선한 날씨엔 자켓에 슬랙스, 톤온톤으로 정돈된 인상을 줘요.",
+  ctaLabel: "피팅으로 입어보기",
+  imageUrl: IMAGES.illustrations.virtualFittingResult,
+  imageAlt: "AI 추천 코디를 가상 피팅한 결과 이미지",
+  recommendationImageUrl: IMAGES.illustrations.aiOutfitRecommendation,
+  recommendationImageAlt: "AI가 추천한 캐주얼 코디 이미지",
+};
+
+const RECOMMENDATION_BUCKETS: Array<{
+  maxTemp: number;
+  recommendation: OutfitRecommendation;
+}> = [
+  {
+    maxTemp: 4,
+    recommendation: {
+      styleTag: "윈터 레이어드",
+      matchPercent: 90,
+      title: "따뜻한 겨울 레이어드룩",
+      description: "체감 온도가 낮아요. 아우터와 니트를 함께 매치해 보온감을 챙겨보세요.",
+      ctaLabel: "피팅으로 입어보기",
+    },
+  },
+  {
+    maxTemp: 10,
+    recommendation: {
+      styleTag: "캐주얼 아우터",
+      matchPercent: 88,
+      title: "가볍게 걸치는 아우터룩",
+      description: "쌀쌀한 날씨예요. 셔츠나 맨투맨 위에 아우터를 더하면 안정적이에요.",
+      ctaLabel: "피팅으로 입어보기",
+    },
+  },
+  {
+    maxTemp: 17,
+    recommendation: {
+      styleTag: "미니멀",
+      matchPercent: 92,
+      title: "차분한 데일리룩",
+      description: "선선한 날에는 긴팔 상의와 팬츠 조합이 편하게 어울려요.",
+      ctaLabel: "피팅으로 입어보기",
+    },
+  },
+  {
+    maxTemp: 23,
+    recommendation: {
+      styleTag: "라이트 캐주얼",
+      matchPercent: 94,
+      title: "가벼운 셔츠 캐주얼룩",
+      description: "쾌적한 날씨예요. 셔츠와 슬랙스나 데님을 자연스럽게 매치해보세요.",
+      ctaLabel: "피팅으로 입어보기",
+    },
+  },
+  {
+    maxTemp: 27,
+    recommendation: {
+      styleTag: "쿨 썸머",
+      matchPercent: 91,
+      title: "시원한 여름 베이직룩",
+      description: "얇고 통기성 좋은 상의를 중심으로 가볍게 입기 좋아요.",
+      ctaLabel: "피팅으로 입어보기",
+    },
+  },
+  {
+    maxTemp: Infinity,
+    recommendation: {
+      styleTag: "쿨링",
+      matchPercent: 89,
+      title: "무더위 대비 쿨링룩",
+      description: "무더운 날씨예요. 반팔과 가벼운 신발 조합을 추천해요.",
+      ctaLabel: "피팅으로 입어보기",
+    },
+  },
+];
+
+export function getOutfitRecommendation(weather: WeatherSummary): OutfitRecommendation {
+  const bucket = RECOMMENDATION_BUCKETS.find((item) => weather.temperature <= item.maxTemp);
+  return bucket?.recommendation ?? RECOMMENDATION_BUCKETS[2].recommendation;
+}
+
+export function getFeaturedAiRecommendation(): OutfitRecommendation {
+  return FEATURED_AI_RECOMMENDATION;
+}
+
+type FeaturedCloth = { id: string; name?: string; imageUrl?: string };
+
+/**
+ * 사용자가 등록한 옷을 홈 캐러셀 슬라이드로 만든다.
+ * 대표 이미지는 등록한 옷 사진을 그대로 쓰고(최근 등록순, 최대 5장),
+ * 등록한 옷이 없으면 기본 추천 한 장으로 폴백해 카드가 비지 않게 한다.
+ */
+export function buildFeaturedRecommendations(
+  clothes: FeaturedCloth[],
+): OutfitRecommendation[] {
+  const withImage = clothes.filter((cloth) => cloth.imageUrl);
+  if (withImage.length === 0) {
+    return [FEATURED_AI_RECOMMENDATION];
+  }
+
+  return withImage.slice(0, 5).map((cloth) => ({
+    styleTag: "AI 데일리 추천",
+    matchPercent: 94,
+    title: cloth.name ?? "오늘의 추천",
+    description: "내 옷장에서 고른 오늘의 추천 아이템이에요.",
+    ctaLabel: "가상피팅으로 입어보기",
+    recommendationImageUrl: cloth.imageUrl,
+    recommendationImageAlt: cloth.name ?? "추천 아이템",
+  }));
+}
+
+export function buildAiOutfitRecommendations({
+  recommendation,
+  style,
+  wardrobe,
+  weather,
+}: {
+  recommendation: RecommendData | null;
+  style: StyleTag;
+  wardrobe: Cloth[];
+  weather: WeatherSummary;
+}): OutfitRecommendation[] {
+  if (!recommendation || recommendation.items.length === 0) {
+    return [FEATURED_AI_RECOMMENDATION];
+  }
+
+  const byId = new Map(wardrobe.map((cloth) => [cloth.id, cloth]));
+  const selected = recommendation.items
+    .map((item) => byId.get(item.clothId))
+    .filter((cloth): cloth is Cloth => Boolean(cloth));
+
+  if (selected.length === 0) {
+    return [FEATURED_AI_RECOMMENDATION];
+  }
+
+  const reason =
+    recommendation.reason[0] ??
+    `${Math.round(weather.temperature)}° 날씨와 ${style} 취향을 기준으로 고른 조합이에요.`;
+  const lookTitle = recommendation.title ?? `오늘의 ${style} 코디`;
+
+  return selected.map((cloth, index) => ({
+    styleTag: `${style} · ${Math.round(weather.temperature)}°`,
+    matchPercent: Math.max(88, 96 - index * 2),
+    title: index === 0 ? `오늘의 ${style} 코디` : cloth.name,
+    description:
+      index === 0
+        ? reason
+        : `${cloth.name}을 함께 매치해 날씨와 스타일 균형을 맞췄어요.`,
+    ctaLabel: "가상피팅으로 입어보기",
+    lookTitle,
+    lookDescription: reason,
+    recommendationImageUrl: cloth.imageUrl,
+    recommendationImageAlt: cloth.name,
+  }));
+
+}
+
+export function getWeatherTip(weather: WeatherSummary): string {
+  const temp = Math.round(weather.temperature);
+  const feelsLike = Math.round(weather.feelsLike);
+  const tempLabel =
+    temp <= 4
+      ? "많이 추워요"
+      : temp <= 10
+        ? "쌀쌀해요"
+        : temp <= 17
+          ? "선선해요"
+          : temp <= 23
+            ? "쾌적해요"
+            : temp <= 27
+              ? "따뜻해요"
+              : "더워요";
+
+  if (feelsLike <= temp - 3) {
+    return `오늘은 ${tempLabel}. 체감 온도는 ${feelsLike}도로 더 낮으니 겉옷을 챙겨보세요.`;
+  }
+  if (weather.condition === "Rain" || weather.condition === "Drizzle") {
+    return "오늘은 비 소식이 있어요. 방수 아우터나 우산을 챙겨보세요.";
+  }
+  return `오늘은 ${tempLabel}. 현재 기온에 맞춰 피팅 추천을 받아보세요.`;
+}
+
+export function getWeatherGlyph(condition: string): string {
+  switch (condition) {
+    case "Clear":
+      return "☀";
+    case "Clouds":
+      return "☁";
+    case "Rain":
+    case "Drizzle":
+      return "☂";
+    case "Thunderstorm":
+      return "⚡";
+    case "Snow":
+      return "❄";
+    case "Mist":
+    case "Fog":
+    case "Haze":
+      return "≈";
+    default:
+      return "•";
+  }
+}
+
+export function getGreeting(date: Date = new Date()): string {
+  const hour = date.getHours();
+  if (hour < 5) return "좋은 밤이에요";
+  if (hour < 12) return "좋은 아침이에요";
+  if (hour < 18) return "좋은 오후예요";
+  return "좋은 저녁이에요";
+}

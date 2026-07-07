@@ -1,0 +1,28 @@
+/**
+ * UI 정적 이미지 경로 (`public/images/`).
+ * 팀에서 공통으로 쓰는 이미지는 여기에 등록해 import 로 재사용하세요.
+ *
+ * @example
+ * import { IMAGES } from "@/constants/assets";
+ * <Image src={IMAGES.brand.logo} alt="URFit" width={120} height={32} />
+ */
+export const IMAGES = {
+  brand: {
+    logo: "/images/brand/logo.svg",
+  },
+  illustrations: {
+    aiOutfitRecommendation: "/images/illustrations/ai-outfit-recommendation.png",
+    virtualFittingResult: "/images/illustrations/virtual-fitting-result.png",
+  },
+  icons: {
+    delete: "/images/icons/delete.svg",
+    search: "/images/icons/search.svg",
+    tab: {
+      main: "/images/icons/main.svg",
+      closet: "/images/icons/closet.svg",
+      fitting: "/images/icons/vitual-fit.svg",
+      saved: "/images/icons/saved.svg",
+      mypage: "/images/icons/mypage.svg",
+    },
+  },
+} as const;

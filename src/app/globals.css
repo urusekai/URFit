@@ -1,0 +1,51 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+@import "tailwindcss";
+
+/* URFit 컬러 시스템 — 라이트 테마 전용 (컬러 가이드 7색) */
+@theme inline {
+  --color-off-white: #f6f5f2;
+  --color-surface-muted: #e3e2de;
+  --color-border: #e3e2de;
+  --color-muted: #6b6b68;
+  --color-charcoal: #2e2e33;
+  --color-foreground: #1a1a1a;
+  --color-accent: #b0876a;
+
+  --font-sans: "Pretendard", system-ui, -apple-system, sans-serif;
+}
+
+html {
+  color-scheme: light;
+}
+
+html,
+body {
+  min-height: 100%;
+  background-color: #ffffff;
+  color: #1a1a1a;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.bottom-tab-bar {
+  transition: background-color 160ms ease;
+}
+
+.bottom-tab-bar__item {
+  position: relative;
+  z-index: 1;
+}
+
+body[data-tab-modal-open="true"] .bottom-tab-bar {
+  background-color: transparent;
+}
+
+body[data-tab-modal-open="true"] .bottom-tab-bar::before {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  content: "";
+  background: rgb(46 46 51 / 30%);
+}
