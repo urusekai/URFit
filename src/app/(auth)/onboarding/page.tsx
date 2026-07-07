@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/app";
 import { Chip } from "@/components/ui/Chip";
 import { cn } from "@/lib/utils/cn";
+import { downscaleImage } from "@/lib/utils/image";
 import {
   CATEGORY_CONFIG,
   CATEGORY_OPTIONS,
@@ -165,6 +166,8 @@ export default function OnboardingPage() {
   const [measures, setMeasures] = useState<Record<string, string>>(() =>
     defaultMeasures("상의"),
   );
+  const [classifying, setClassifying] = useState(false);
+  const [aiStyles, setAiStyles] = useState<string[]>([]);
 
   const categoryConfig = CATEGORY_CONFIG[category];
 
@@ -182,16 +185,40 @@ export default function OnboardingPage() {
     return () => URL.revokeObjectURL(clothPhoto);
   }, [clothPhoto]);
 
-  function selectBodyPhoto(file: File | undefined) {
-    if (!file) return;
+  async function selectBodyPhoto(original: File | undefined) {
+    if (!original) return;
+    const file = await downscaleImage(original);
     setBodyPhoto(URL.createObjectURL(file));
     setBodyPhotoFile(file);
   }
 
-  function selectClothPhoto(file: File | undefined) {
-    if (!file) return;
+  async function selectClothPhoto(original: File | undefined) {
+    if (!original) return;
+    // 업로드 전 축소 → 태깅/피팅/업로드 모두 빨라짐
+    setClassifying(true);
+    const file = await downscaleImage(original);
     setClothPhoto(URL.createObjectURL(file));
     setClothPhotoFile(file);
+
+    // 사진 선택 시 AI가 카테고리/스타일 자동 판별 → 카테고리 자동 선택(유저 수정 가능)
+    try {
+      const body = new FormData();
+      body.set("clothPhoto", file);
+      const res = await fetch("/api/classify-cloth", { method: "POST", body });
+      const payload = (await res.json()) as
+        | { ok: true; data: { category: string | null; styles: string[] } }
+        | { ok: false; error: string };
+      if (payload.ok) {
+        if (payload.data.category && CATEGORY_CONFIG[payload.data.category]) {
+          changeCategory(payload.data.category);
+        }
+        setAiStyles(payload.data.styles ?? []);
+      }
+    } catch {
+      // 자동 판별 실패해도 수동 선택으로 진행
+    } finally {
+      setClassifying(false);
+    }
   }
 
   function toggleBrand(brand: string) {
@@ -238,6 +265,7 @@ export default function OnboardingPage() {
       formData.set("fit", fit);
       formData.set("size", size);
       formData.set("measurements", JSON.stringify(measures));
+      if (aiStyles.length > 0) formData.set("styles", JSON.stringify(aiStyles));
       if (clothPhotoFile) formData.set("clothPhoto", clothPhotoFile);
     }
 
@@ -415,7 +443,11 @@ export default function OnboardingPage() {
               badge="배경 자동 제거됨"
             />
 
-            <p className="text-sm text-muted">AI가 찾은 정보를 골라서 수정하세요</p>
+            <p className="text-sm text-muted">
+              {classifying
+                ? "AI가 사진을 분석 중이에요…"
+                : "AI가 찾은 정보를 골라서 수정하세요"}
+            </p>
 
             <div>
               <label className="text-sm font-medium text-foreground">카테고리</label>

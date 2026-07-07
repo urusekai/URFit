@@ -146,8 +146,11 @@ function ProfileModal({
   useEffect(() => {
     const original = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    document.body.dataset.tabModalOpen = "true";
+
     return () => {
       document.body.style.overflow = original;
+      delete document.body.dataset.tabModalOpen;
     };
   }, []);
 
@@ -188,19 +191,19 @@ function ProfileModal({
   }
 
   return (
-    <div className="fixed inset-x-0 top-0 bottom-[calc(5.75rem_+_env(safe-area-inset-bottom))] z-[60]">
+    <div className="fixed inset-0 z-50 transition">
       <button
         type="button"
         aria-label="닫기"
         onClick={onClose}
-        className="absolute inset-0 cursor-pointer bg-charcoal/30"
+        className="absolute inset-0 cursor-pointer bg-charcoal/30 transition-opacity"
       />
 
       <div
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="absolute bottom-0 left-1/2 flex max-h-[calc(100dvh_-_7.75rem_-_env(safe-area-inset-bottom))] w-full max-w-md -translate-x-1/2 flex-col overflow-hidden rounded-t-[32px] bg-white px-5 pb-8 pt-4 shadow-[0_-18px_48px_rgba(0,0,0,0.12)]"
+        className="absolute bottom-[calc(5rem+env(safe-area-inset-bottom)-16px)] left-1/2 w-full max-w-md -translate-x-1/2 rounded-t-[32px] bg-white px-5 pb-8 pt-4 transition-transform duration-300"
       >
         <div className="mx-auto h-1.5 w-14 rounded-full bg-surface-muted" />
         <div className="mt-5 flex items-center justify-between">

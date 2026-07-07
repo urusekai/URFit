@@ -31,6 +31,8 @@ export function FittingLookNameSheet({
       return;
     }
 
+    document.body.dataset.tabModalOpen = "true";
+
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         onClose();
@@ -41,6 +43,7 @@ export function FittingLookNameSheet({
 
     return () => {
       window.removeEventListener("keydown", handleEscape);
+      delete document.body.dataset.tabModalOpen;
     };
   }, [isOpen, onClose]);
 

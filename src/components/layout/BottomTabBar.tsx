@@ -16,7 +16,7 @@ export function BottomTabBar() {
 
   return (
     <nav
-      className="fixed bottom-0 left-1/2 z-50 w-full max-w-md -translate-x-1/2 bg-white"
+      className="bottom-tab-bar fixed bottom-0 left-1/2 z-50 w-full max-w-md -translate-x-1/2 bg-white"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       aria-label="하단 메뉴"
     >
@@ -30,7 +30,7 @@ export function BottomTabBar() {
               <li key={item.href} className="flex justify-center">
                 <Link
                   href={item.href}
-                  className="flex -translate-y-5 flex-col items-center gap-1"
+                  className="bottom-tab-bar__item flex -translate-y-5 flex-col items-center gap-1"
                   aria-current={isActive ? "page" : undefined}
                 >
                   <TabIcon name={item.href} variant="center" active={isActive} />
@@ -52,7 +52,7 @@ export function BottomTabBar() {
               <Link
                 href={item.href}
                 className={cn(
-                  "flex h-full flex-col items-center justify-end gap-1 pb-1 text-xs font-medium transition",
+                  "bottom-tab-bar__item flex h-full flex-col items-center justify-end gap-1 pb-1 text-xs font-medium transition",
                   isActive ? "font-semibold text-accent" : "text-muted hover:text-charcoal",
                 )}
                 aria-current={isActive ? "page" : undefined}

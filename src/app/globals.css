@@ -27,3 +27,25 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+.bottom-tab-bar {
+  transition: background-color 160ms ease;
+}
+
+.bottom-tab-bar__item {
+  position: relative;
+  z-index: 1;
+}
+
+body[data-tab-modal-open="true"] .bottom-tab-bar {
+  background-color: transparent;
+}
+
+body[data-tab-modal-open="true"] .bottom-tab-bar::before {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  content: "";
+  background: rgb(46 46 51 / 30%);
+}

@@ -20,6 +20,7 @@ import {
   CATEGORY_CONFIG,
   defaultMeasures,
 } from "@/lib/wardrobe/clothForm";
+import { downscaleImage } from "@/lib/utils/image";
 
 type AddItemSheetProps = {
   onClose: () => void;
@@ -64,6 +65,8 @@ export function AddItemSheet({ onClose, onAdd }: AddItemSheetProps) {
   );
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [classifying, setClassifying] = useState(false);
+  const [aiStyles, setAiStyles] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -72,8 +75,11 @@ export function AddItemSheet({ onClose, onAdd }: AddItemSheetProps) {
   useEffect(() => {
     const original = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    document.body.dataset.tabModalOpen = "true";
+
     return () => {
       document.body.style.overflow = original;
+      delete document.body.dataset.tabModalOpen;
     };
   }, []);
 
@@ -96,12 +102,37 @@ export function AddItemSheet({ onClose, onAdd }: AddItemSheetProps) {
     setMeasures((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handlePhotoChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const handlePhotoChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const original = event.target.files?.[0];
+    if (!original) return;
+
+    // 업로드 전 축소 → 태깅/피팅/업로드 모두 빨라짐
+    setClassifying(true);
+    const file = await downscaleImage(original);
     if (photoUrl) URL.revokeObjectURL(photoUrl);
     setPhotoUrl(URL.createObjectURL(file));
     setPhotoFile(file);
+
+    // 사진 선택 시 AI가 카테고리/스타일 자동 판별 → 카테고리 자동 선택(유저 수정 가능)
+    try {
+      const body = new FormData();
+      body.set("clothPhoto", file);
+      const res = await fetch("/api/classify-cloth", { method: "POST", body });
+      const payload = (await res.json()) as
+        | { ok: true; data: { category: string | null; styles: string[] } }
+        | { ok: false; error: string };
+      if (payload.ok) {
+        const matched = CLOSET_CATEGORIES.find(
+          (option) => option.label === payload.data.category,
+        );
+        if (matched) changeCategory(matched.value);
+        setAiStyles(payload.data.styles ?? []);
+      }
+    } catch {
+      // 자동 판별 실패해도 수동 선택으로 진행
+    } finally {
+      setClassifying(false);
+    }
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -116,6 +147,7 @@ export function AddItemSheet({ onClose, onAdd }: AddItemSheetProps) {
     formData.set("fit", fit);
     formData.set("size", size);
     formData.set("measurements", JSON.stringify(measures));
+    if (aiStyles.length > 0) formData.set("styles", JSON.stringify(aiStyles));
     if (photoFile) formData.set("clothPhoto", photoFile);
 
     const result = await saveClosetItem(formData);
@@ -130,14 +162,14 @@ export function AddItemSheet({ onClose, onAdd }: AddItemSheetProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex justify-center">
+    <div className="fixed inset-0 z-50 flex justify-center">
       <button
         type="button"
         aria-label="닫기"
         onClick={onClose}
         className="absolute inset-0 bg-charcoal/40"
       />
-      <div className="absolute inset-x-0 top-[18%] bottom-0 mx-auto flex w-full max-w-md flex-col overflow-hidden rounded-t-3xl bg-white shadow-xl">
+      <div className="absolute bottom-[calc(5rem+env(safe-area-inset-bottom))] left-1/2 flex max-h-[calc(100dvh_-_7.75rem_-_env(safe-area-inset-bottom))] w-full max-w-md -translate-x-1/2 flex-col overflow-hidden rounded-t-[32px] bg-white shadow-xl">
         <header className="relative flex h-14 shrink-0 items-center bg-white px-2">
           <button
             type="button"
@@ -198,7 +230,11 @@ export function AddItemSheet({ onClose, onAdd }: AddItemSheetProps) {
               />
             </label>
 
-            <p className="text-sm text-muted">AI가 찾은 정보를 골라서 수정하세요</p>
+            <p className="text-sm text-muted">
+              {classifying
+                ? "AI가 사진을 분석 중이에요…"
+                : "AI가 찾은 정보를 골라서 수정하세요"}
+            </p>
 
             <div>
               <label className="text-sm font-medium text-foreground">카테고리</label>

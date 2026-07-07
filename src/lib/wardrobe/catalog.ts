@@ -1,5 +1,6 @@
 import type { Database } from "@/types/database";
 import type { Cloth, ClothCategory, Season } from "@/types/fitting";
+import { CATEGORY_CONFIG } from "./clothForm";
 
 export type ClosetCategory = "top" | "outer" | "bottom" | "shoes" | "hat";
 
@@ -36,6 +37,7 @@ export type ClosetItem = {
   season: string;
   material: string;
   fit: string;
+  size: string;
   careInfo: string;
   source: string;
   imageUrl?: string;
@@ -120,6 +122,22 @@ const DEFAULT_MEASUREMENTS: Record<ClosetCategory, ClosetMeasurement[]> = {
   ],
 };
 
+const MEASUREMENT_LABEL_BY_KEY: Record<string, string> = {
+  shoulder: "어깨",
+  chest: "가슴",
+  length: "총장",
+  waist: "허리",
+  hip: "엉덩이",
+  footLength: "발길이",
+  footWidth: "발볼",
+  head: "머리둘레",
+  brim: "챙길이",
+};
+
+export function formatMeasurementLabel(label: string) {
+  return MEASUREMENT_LABEL_BY_KEY[label] ?? label;
+}
+
 function getColorTheme(color: string) {
   return COLOR_THEME[color.toLowerCase()] ?? {
     swatch: "#f2f1ed",
@@ -156,6 +174,7 @@ export function toClosetItem(cloth: Cloth, index: number): ClosetItem {
     season: formatSeasons(cloth.seasons),
     material: formatMaterial(cloth.material),
     fit: FIT_LABEL[cloth.formality],
+    size: "M",
     careInfo: "의류 케어 보기",
     source: "피팅 옷 목록",
     imageUrl: cloth.imageUrl,
@@ -188,9 +207,29 @@ function toMeasurementList(
     typeof measurements === "object" &&
     !Array.isArray(measurements)
   ) {
-    const entries = Object.entries(measurements as Record<string, unknown>)
-      .filter(([, value]) => value != null && String(value).trim() !== "")
-      .map(([label, value]) => ({ label, value: String(value) }));
+    const rawMeasurements = measurements as Record<string, unknown>;
+    const configuredMeasurements = CATEGORY_CONFIG[CLOSET_CATEGORY_LABEL[category]].measures;
+    const configuredKeys = new Set(configuredMeasurements.map((measure) => measure.key));
+    const entries = [
+      ...configuredMeasurements
+        .filter((measure) => {
+          const value = rawMeasurements[measure.key];
+          return value != null && String(value).trim() !== "";
+        })
+        .map((measure) => ({
+          label: measure.label,
+          value: String(rawMeasurements[measure.key]),
+        })),
+      ...Object.entries(rawMeasurements)
+        .filter(
+          ([key, value]) =>
+            !configuredKeys.has(key) && value != null && String(value).trim() !== "",
+        )
+        .map(([label, value]) => ({
+          label: formatMeasurementLabel(label),
+          value: String(value),
+        })),
+    ];
     if (entries.length > 0) {
       return entries;
     }
@@ -227,6 +266,7 @@ export function toClosetItemFromRow(
     season: "-",
     material: row.material ?? "미상",
     fit: row.fit ?? "-",
+    size: row.size ?? "-",
     careInfo: "의류 케어 보기",
     source: "직접 등록",
     imageUrl,

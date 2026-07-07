@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { CLOSET_CATEGORY_LABEL, type ClosetItem } from "@/lib/wardrobe/catalog";
+import {
+  CLOSET_CATEGORY_LABEL,
+  formatMeasurementLabel,
+  type ClosetItem,
+} from "@/lib/wardrobe/catalog";
 import { ClosetItemCareView } from "./ClosetItemCareView";
 import { ClosetItemIcon } from "./ClosetItemIcon";
 
@@ -25,13 +29,18 @@ function InfoRow({ label, value }: { label: string; value: ReactNode }) {
 export function ClosetItemDetailModal({ item, onClose }: ClosetItemDetailModalProps) {
   const [view, setView] = useState<ModalView>("info");
   const hasCareInfo = item.careInfo !== "미등록";
+  const measurementGridClass =
+    item.measurements.length === 2 ? "grid grid-cols-2 gap-3" : "grid grid-cols-3 gap-2";
 
   // 모달이 떠 있는 동안 뒤쪽 옷장 목록이 함께 스크롤되지 않도록 고정합니다.
   useEffect(() => {
     const original = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    document.body.dataset.tabModalOpen = "true";
+
     return () => {
       document.body.style.overflow = original;
+      delete document.body.dataset.tabModalOpen;
     };
   }, []);
 
@@ -44,14 +53,14 @@ export function ClosetItemDetailModal({ item, onClose }: ClosetItemDetailModalPr
   };
 
   return (
-    <div className="fixed inset-0 z-[70] flex justify-center">
+    <div className="fixed inset-0 z-50 flex justify-center">
       <button
         type="button"
         aria-label="닫기"
         onClick={onClose}
         className="absolute inset-0 bg-charcoal/40"
       />
-      <div className="absolute inset-x-0 top-[18%] bottom-0 mx-auto flex w-full max-w-md flex-col overflow-hidden rounded-t-3xl bg-white shadow-xl">
+      <div className="absolute bottom-[calc(5rem+env(safe-area-inset-bottom))] left-1/2 flex max-h-[calc(100dvh_-_7.75rem_-_env(safe-area-inset-bottom))] w-full max-w-md -translate-x-1/2 flex-col overflow-hidden rounded-t-[32px] bg-white shadow-xl">
         <header className="relative flex h-14 shrink-0 items-center bg-white px-2">
           <button
             type="button"
@@ -151,15 +160,19 @@ export function ClosetItemDetailModal({ item, onClose }: ClosetItemDetailModalPr
               <div className="rounded-2xl bg-off-white/70 p-4">
                 <div className="mb-3 flex items-center justify-between">
                   <span className="text-sm font-semibold text-charcoal">옷 치수</span>
-                  <span className="text-xs text-muted">M · {item.fit}</span>
+                  <span className="text-xs text-muted">
+                    {item.size} · {item.fit}
+                  </span>
                 </div>
-                <div className="grid grid-cols-3 gap-2">
+                <div className={measurementGridClass}>
                   {item.measurements.map((measurement) => (
                     <div
                       key={measurement.label}
-                    className="flex flex-col items-center gap-1 rounded-xl bg-white py-3"
+                      className="flex flex-col items-center gap-1 rounded-xl bg-white py-3"
                     >
-                      <span className="text-xs text-muted">{measurement.label}</span>
+                      <span className="text-xs text-muted">
+                        {formatMeasurementLabel(measurement.label)}
+                      </span>
                       <span className="text-base font-bold text-foreground">
                         {measurement.value}
                       </span>

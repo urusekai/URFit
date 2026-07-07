@@ -4,14 +4,22 @@ import { WeatherPill } from "@/components/features/outfit/WeatherPill";
 import { WeatherTipBanner } from "@/components/features/outfit/WeatherTipBanner";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { APP_NAME } from "@/constants/app";
+import { getWardrobe } from "@/lib/fitting";
 import {
+  buildAiOutfitRecommendations,
   buildFeaturedRecommendations,
   getGreeting,
   getWeatherTip,
 } from "@/lib/outfit/recommendation";
+import {
+  recommendOutfit,
+  toRecommendationStyle,
+} from "@/lib/outfit/recommend-engine";
+import { createClient } from "@/lib/supabase/server";
 import { getMyClosetItems } from "@/lib/wardrobe/closet";
 import { getCurrentWeather } from "@/lib/weather/openweather";
 import type { WeatherSummary } from "@/types/api";
+import type { StyleTag } from "@/types/fitting";
 
 const FALLBACK_WEATHER: WeatherSummary = {
   city: "Seoul",
@@ -32,14 +40,62 @@ async function getWeatherSafely(): Promise<WeatherSummary> {
   }
 }
 
-const DEMO_USER_NAME = "지우";
+async function getPreferredStyle(): Promise<StyleTag> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return "캐주얼";
+  }
+
+  const { data } = await supabase
+    .from("profiles")
+    .select("style")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  return toRecommendationStyle(data?.style);
+}
+
+function formatWeatherForRecommendation(weather: WeatherSummary) {
+  return `${weather.city}, ${Math.round(weather.temperature)}°C, 체감 ${Math.round(
+    weather.feelsLike,
+  )}°C, ${weather.description}, 습도 ${weather.humidity}%`;
+}
+
+const DEMO_USER_NAME = "지윤";
 
 export default async function MainPage() {
-  const [weather, closetItems] = await Promise.all([
+  const [weather, closetItems, wardrobe, preferredStyle] = await Promise.all([
     getWeatherSafely(),
     getMyClosetItems(),
+    getWardrobe(""),
+    getPreferredStyle(),
   ]);
-  const recommendations = buildFeaturedRecommendations(closetItems);
+
+  const aiRecommendation =
+    wardrobe.length > 0
+      ? await recommendOutfit({
+          wardrobe,
+          style: preferredStyle,
+          weather: formatWeatherForRecommendation(weather),
+        }).catch((error) => {
+          console.error("[MainPage recommendOutfit]", error);
+          return null;
+        })
+      : null;
+
+  const recommendations =
+    aiRecommendation && wardrobe.length > 0
+      ? buildAiOutfitRecommendations({
+          recommendation: aiRecommendation,
+          style: preferredStyle,
+          wardrobe,
+          weather,
+        })
+      : buildFeaturedRecommendations(closetItems);
   const tip = getWeatherTip(weather);
   const greeting = getGreeting();
 

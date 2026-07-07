@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { cn } from "@/lib/utils/cn";
 import type { ClothCategory } from "@/types/fitting";
@@ -250,7 +250,7 @@ function SavedLookGarmentsSheet({
   onClose: () => void;
 }) {
   return (
-    <div className="fixed inset-x-0 top-0 bottom-[calc(5.75rem_+_env(safe-area-inset-bottom))] z-[60]">
+    <div className="fixed inset-0 z-50">
       <button
         type="button"
         aria-label="저장한 룩 상세 닫기"
@@ -261,7 +261,7 @@ function SavedLookGarmentsSheet({
         role="dialog"
         aria-modal="true"
         aria-labelledby="saved-look-garments-title"
-        className="absolute bottom-0 left-1/2 flex max-h-[calc(100dvh_-_7.75rem_-_env(safe-area-inset-bottom))] w-full max-w-md -translate-x-1/2 flex-col overflow-hidden rounded-t-[32px] bg-white px-5 pb-8 pt-4 shadow-[0_-18px_48px_rgba(0,0,0,0.12)]"
+        className="absolute bottom-[calc(5rem+env(safe-area-inset-bottom))] left-1/2 flex max-h-[calc(100dvh_-_7.75rem_-_env(safe-area-inset-bottom))] w-full max-w-md -translate-x-1/2 flex-col overflow-hidden rounded-t-[32px] bg-white px-5 pb-8 pt-4 shadow-[0_-18px_48px_rgba(0,0,0,0.12)]"
       >
         <div className="mx-auto h-1.5 w-14 rounded-full bg-surface-muted" />
         <div className="mt-5 flex items-center justify-between gap-3">
@@ -419,6 +419,18 @@ export function SavedExperience({ initialLooks }: SavedExperienceProps) {
   const [deletingLookId, setDeletingLookId] = useState<string | null>(null);
   const [favoritingLookId, setFavoritingLookId] = useState<string | null>(null);
   const [selectedLook, setSelectedLook] = useState<SavedLookItem | null>(null);
+
+  useEffect(() => {
+    if (!selectedLook) {
+      return;
+    }
+
+    document.body.dataset.tabModalOpen = "true";
+
+    return () => {
+      delete document.body.dataset.tabModalOpen;
+    };
+  }, [selectedLook]);
 
   const filteredLooks = useMemo(
     () => getFilteredLooks(looks, selectedFilter),

@@ -127,6 +127,9 @@ export async function generateText({
     config: {
       systemInstruction,
       temperature,
+      // 구조화된 짧은 응답(추천 JSON 등)에는 thinking이 불필요 → 지연 대폭 감소
+      maxOutputTokens: 2048,
+      thinkingConfig: { thinkingBudget: 0 },
     },
   });
 
@@ -220,6 +223,9 @@ export async function generateTextFromInputs({
     input: buildInputParts(prompt, images),
     generation_config: {
       temperature,
+      // 태깅(카테고리/스타일)은 짧은 JSON → 출력·thinking 최소화로 속도↑
+      max_output_tokens: 1024,
+      thinking_level: "low",
     },
     response_modalities: ["text"],
   });

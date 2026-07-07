@@ -109,6 +109,8 @@ export function AiRecommendationCard({
 
   const boundedIndex = Math.min(activeIndex, slideCount - 1);
   const active = slides[boundedIndex];
+  const displayTitle = active.lookTitle ?? active.title;
+  const displayDescription = active.lookDescription ?? active.description;
 
   const goTo = (index: number) => {
     setActiveIndex(((index % slideCount) + slideCount) % slideCount);
@@ -230,9 +232,9 @@ export function AiRecommendationCard({
       </div>
 
       <div className="mt-4 text-center">
-        <h3 className="text-[19px] font-extrabold text-foreground">{active.title}</h3>
+        <h3 className="text-[19px] font-extrabold text-foreground">{displayTitle}</h3>
         <p className="mt-1.5 text-sm font-semibold leading-5 text-[#6B6B68]">
-          {active.description}
+          {displayDescription}
         </p>
       </div>
 

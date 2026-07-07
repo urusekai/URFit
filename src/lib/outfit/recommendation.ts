@@ -1,5 +1,7 @@
 import { IMAGES } from "@/constants/assets";
 import type { WeatherSummary } from "@/types/api";
+import type { Cloth, StyleTag } from "@/types/fitting";
+import type { RecommendData } from "./recommend-engine";
 
 export type OutfitRecommendation = {
   styleTag: string;
@@ -7,6 +9,8 @@ export type OutfitRecommendation = {
   title: string;
   description: string;
   ctaLabel: string;
+  lookTitle?: string;
+  lookDescription?: string;
   imageUrl?: string;
   imageAlt?: string;
   recommendationImageUrl?: string;
@@ -125,6 +129,52 @@ export function buildFeaturedRecommendations(
     recommendationImageUrl: cloth.imageUrl,
     recommendationImageAlt: cloth.name ?? "추천 아이템",
   }));
+}
+
+export function buildAiOutfitRecommendations({
+  recommendation,
+  style,
+  wardrobe,
+  weather,
+}: {
+  recommendation: RecommendData | null;
+  style: StyleTag;
+  wardrobe: Cloth[];
+  weather: WeatherSummary;
+}): OutfitRecommendation[] {
+  if (!recommendation || recommendation.items.length === 0) {
+    return [FEATURED_AI_RECOMMENDATION];
+  }
+
+  const byId = new Map(wardrobe.map((cloth) => [cloth.id, cloth]));
+  const selected = recommendation.items
+    .map((item) => byId.get(item.clothId))
+    .filter((cloth): cloth is Cloth => Boolean(cloth));
+
+  if (selected.length === 0) {
+    return [FEATURED_AI_RECOMMENDATION];
+  }
+
+  const reason =
+    recommendation.reason[0] ??
+    `${Math.round(weather.temperature)}° 날씨와 ${style} 취향을 기준으로 고른 조합이에요.`;
+  const lookTitle = recommendation.title ?? `오늘의 ${style} 코디`;
+
+  return selected.map((cloth, index) => ({
+    styleTag: `${style} · ${Math.round(weather.temperature)}°`,
+    matchPercent: Math.max(88, 96 - index * 2),
+    title: index === 0 ? `오늘의 ${style} 코디` : cloth.name,
+    description:
+      index === 0
+        ? reason
+        : `${cloth.name}을 함께 매치해 날씨와 스타일 균형을 맞췄어요.`,
+    ctaLabel: "가상피팅으로 입어보기",
+    lookTitle,
+    lookDescription: reason,
+    recommendationImageUrl: cloth.imageUrl,
+    recommendationImageAlt: cloth.name,
+  }));
+
 }
 
 export function getWeatherTip(weather: WeatherSummary): string {

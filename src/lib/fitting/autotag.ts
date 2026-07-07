@@ -22,6 +22,16 @@ export function normalizeStyleTags(values: unknown): StyleTag[] {
   return Array.from(new Set(valid));
 }
 
+/** 폼으로 넘어온 styles JSON 문자열을 StyleTag[]로 파싱(클라이언트가 이미 분류한 값 재사용). */
+export function parseStyleField(value: unknown): StyleTag[] {
+  if (typeof value !== "string" || value.trim() === "") return [];
+  try {
+    return normalizeStyleTags(JSON.parse(value));
+  } catch {
+    return [];
+  }
+}
+
 const PROMPT = `You are a fashion classifier. Analyze this single clothing item.
 
 Category — choose exactly ONE that best fits:
