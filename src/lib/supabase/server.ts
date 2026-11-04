@@ -4,9 +4,8 @@ import { cookies } from "next/headers";
 import { clientEnv, requireEnv } from "@/lib/env";
 import type { Database } from "@/types/database";
 
-// @supabase/ssr@0.6.1은 반환 타입을 supabase-js@2.109의 재배치된 제네릭과
-// 맞지 않게 선언한다(Schema가 잘못된 슬롯으로 들어가 never로 붕괴). 스키마를
-// 올바로 파생하는 2-제네릭 SupabaseClient<Database>로 캐스팅해 .from() 타입을 복구한다.
+// @supabase/ssr의 반환 타입과 생성된 Database 타입을 함께 쓰기 위해
+// SupabaseClient<Database>로 좁혀 .from()의 스키마 타입을 유지한다.
 export async function createClient(): Promise<SupabaseClient<Database>> {
   const cookieStore = await cookies();
 

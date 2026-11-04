@@ -28,6 +28,14 @@ export async function GET(request: NextRequest) {
       }
       return NextResponse.redirect(`${origin}${next}`);
     }
+
+    // 브라우저로는 민감한 인증 오류를 노출하지 않되, Vercel 로그에는 남겨
+    // PKCE verifier 누락·만료된 code 등 OAuth 교환 실패 원인을 추적한다.
+    console.error("[auth/callback] OAuth code exchange failed", {
+      code: error.code,
+      message: error.message,
+      status: error.status,
+    });
   }
 
   return NextResponse.redirect(`${origin}${ROUTES.login}?error=auth`);
